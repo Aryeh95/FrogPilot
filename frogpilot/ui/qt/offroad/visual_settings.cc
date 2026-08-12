@@ -505,13 +505,8 @@ void FrogPilotVisualsPanel::updateToggles() {
       setVisible &= parent->hasBSM;
     }
 
-    else if (key == "HideLeadMarker") {
-      setVisible &= parent->hasOpenpilotLongitudinal;
-    }
-
-    else if (key == "LeadInfo") {
-      setVisible &= parent->hasOpenpilotLongitudinal;
-    }
+    // HideLeadMarker and LeadInfo apply with stock longitudinal too:
+    // the lead marker is drawn whenever radarState is tracking
 
     else if (key == "OnroadDistanceButton") {
       setVisible &= parent->hasOpenpilotLongitudinal;
