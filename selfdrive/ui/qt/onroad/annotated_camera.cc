@@ -544,7 +544,9 @@ void AnnotatedCameraWidget::paintGL() {
     update_model(s, fs, model, sm["uiPlan"].getUiPlan(), frogpilot_toggles);
     drawLaneLines(painter, s, fs);
 
-    if ((s->scene.longitudinal_control || frogpilot_toggles.value("lead_info").toBool()) && sm.rcv_frame("radarState") > s->scene.started_frame && !frogpilot_toggles.value("hide_lead_marker").toBool()) {
+    // draw leads whenever radarState is tracking, including with stock longitudinal
+    // (openpilot still tracks leads on camera-SCC cars even when stock ACC does the braking)
+    if (sm.rcv_frame("radarState") > s->scene.started_frame && !frogpilot_toggles.value("hide_lead_marker").toBool()) {
       auto radar_state = sm["radarState"].getRadarState();
       update_leads(s, radar_state, model.getPosition());
       auto lead_one = radar_state.getLeadOne();
