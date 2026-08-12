@@ -51,13 +51,18 @@ def create_steering_messages(packer, CP, CAN, enabled, lat_active, apply_steer):
     "NEW_SIGNAL_2": 0,
   }
 
+  # MDPS damping while the driver applies torque against LKA; 0 makes the EPS
+  # fight the driver and trip a TOI fault. Matches upstream openpilot's value.
+  # Only defined for LFA: the HDA2 LKAS/LKAS_ALT messages carry this byte elsewhere.
+  lfa_values = {**values, "DAMPING_GAIN": 100}
+
   if CP.flags & HyundaiFlags.CANFD_HDA2:
     hda2_lkas_msg = "LKAS_ALT" if CP.flags & HyundaiFlags.CANFD_HDA2_ALT_STEERING else "LKAS"
     if CP.openpilotLongitudinalControl:
-      ret.append(packer.make_can_msg("LFA", CAN.ECAN, values))
+      ret.append(packer.make_can_msg("LFA", CAN.ECAN, lfa_values))
     ret.append(packer.make_can_msg(hda2_lkas_msg, CAN.ACAN, values))
   else:
-    ret.append(packer.make_can_msg("LFA", CAN.ECAN, values))
+    ret.append(packer.make_can_msg("LFA", CAN.ECAN, lfa_values))
 
   return ret
 
