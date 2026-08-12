@@ -480,8 +480,10 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::RadarState
 
   // chevron
   QPointF chevron[] = {{x + (sz * 1.25), y + sz}, {x, y}, {x - (sz * 1.25), y + sz}};
-  if (!adjacent && fs->frogpilot_scene.use_stock_colors) {
-    painter.setBrush(redColor(fillAlpha));
+  if (!adjacent) {
+    // lead source indicator: green = radar-measured track, orange = vision-estimated fallback
+    QColor source_color = lead_data.getRadar() ? QColor(46, 204, 113) : QColor(255, 165, 0);
+    painter.setBrush(QColor(source_color.red(), source_color.green(), source_color.blue(), fillAlpha));
   } else {
     painter.setBrush(QColor(marker_color.red(), marker_color.green(), marker_color.blue(), fillAlpha));
   }
