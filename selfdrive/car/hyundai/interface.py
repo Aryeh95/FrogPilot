@@ -4,7 +4,7 @@ from openpilot.selfdrive.car.hyundai.hyundaicanfd import CanBus
 from openpilot.selfdrive.car.hyundai.values import HyundaiFlags, CAR, DBC, CANFD_CAR, CAMERA_SCC_CAR, CANFD_RADAR_SCC_CAR, \
                                          CANFD_UNSUPPORTED_LONGITUDINAL_CAR, EV_CAR, HYBRID_CAR, LEGACY_SAFETY_MODE_CAR, \
                                          UNSUPPORTED_LONGITUDINAL_CAR, Buttons
-from openpilot.selfdrive.car.hyundai.radar_interface import RADAR_START_ADDR
+from openpilot.selfdrive.car.hyundai.radar_interface import RADAR_START_ADDR, CANFD_RADAR_START_ADDR, CANFD_RADAR_DBC
 from openpilot.selfdrive.car import create_button_events, get_safety_config
 from openpilot.selfdrive.car.interfaces import CarInterfaceBase
 from openpilot.selfdrive.car.disable_ecu import disable_ecu
@@ -23,7 +23,11 @@ class CarInterface(CarInterfaceBase):
   @staticmethod
   def _get_params(ret, candidate, fingerprint, car_fw, experimental_long, docs, frogpilot_toggles):
     ret.carName = "hyundai"
-    ret.radarUnavailable = RADAR_START_ADDR not in fingerprint[1] or DBC[ret.carFingerprint]["radar"] is None
+    if DBC[ret.carFingerprint]["radar"] == CANFD_RADAR_DBC:
+      # CAN-FD radar tracks are broadcast natively; only usable when the stream reaches bus 1 (non-HDA2 A-CAN)
+      ret.radarUnavailable = CANFD_RADAR_START_ADDR not in fingerprint[1]
+    else:
+      ret.radarUnavailable = RADAR_START_ADDR not in fingerprint[1] or DBC[ret.carFingerprint]["radar"] is None
 
     # These cars have been put into dashcam only due to both a lack of users and test coverage.
     # These cars likely still work fine. Once a user confirms each car works and a test route is

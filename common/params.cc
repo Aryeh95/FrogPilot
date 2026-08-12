@@ -365,6 +365,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"HumanAcceleration", PERSISTENT},
     {"HumanFollowing", PERSISTENT},
     {"HumanLaneChanges", PERSISTENT},
+    {"HyundaiRadarTracksFusion", PERSISTENT},
     {"IconToDownload", CLEAR_ON_MANAGER_START},
     {"IncreasedStoppedDistance", PERSISTENT},
     {"IncreaseFollowingLowVisibility", PERSISTENT},

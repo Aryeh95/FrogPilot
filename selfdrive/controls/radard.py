@@ -262,8 +262,9 @@ def get_adjacent_lead(tracks: dict[int, Track], model_data: capnp._DynamicStruct
 
 
 class RadarD:
-  def __init__(self, radar_ts: float, delay: int = 0):
+  def __init__(self, radar_ts: float, delay: int = 0, fuse_tracks: bool = True):
     self.current_time = 0.0
+    self.fuse_tracks = fuse_tracks
 
     self.tracks: dict[int, Track] = {}
     self.kalman_params = KalmanParams(radar_ts)
@@ -333,8 +334,10 @@ class RadarD:
       model_v_ego = self.v_ego
     leads_v3 = sm['modelV2'].leadsV3
     if len(leads_v3) > 1:
-      self.radar_state.leadOne = get_lead(self.v_ego, self.ready, self.tracks, leads_v3[0], model_v_ego, sm['modelV2'], sm['frogpilotPlan'], self.frogpilot_toggles, low_speed_override=True)
-      self.radar_state.leadTwo = get_lead(self.v_ego, self.ready, self.tracks, leads_v3[1], model_v_ego, sm['modelV2'], sm['frogpilotPlan'], self.frogpilot_toggles, low_speed_override=False)
+      # display-only mode: tracks are published to the UI but leads stay vision-based
+      lead_tracks = self.tracks if self.fuse_tracks else {}
+      self.radar_state.leadOne = get_lead(self.v_ego, self.ready, lead_tracks, leads_v3[0], model_v_ego, sm['modelV2'], sm['frogpilotPlan'], self.frogpilot_toggles, low_speed_override=True)
+      self.radar_state.leadTwo = get_lead(self.v_ego, self.ready, lead_tracks, leads_v3[1], model_v_ego, sm['modelV2'], sm['frogpilotPlan'], self.frogpilot_toggles, low_speed_override=False)
 
     if (self.frogpilot_toggles.adjacent_lead_tracking or self.frogpilot_toggles.human_lane_changes) and self.ready:
       self.frogpilot_radar_state.leadLeft = get_adjacent_lead(self.tracks, sm['modelV2'], left=True)
@@ -392,8 +395,17 @@ def main():
 
   RI = RadarInterface(CP)
 
+  # Hyundai CAN-FD radar tracks only feed lead fusion once explicitly enabled;
+  # until then they are display-only (liveTracks / adjacent leads)
+  fuse_tracks = True
+  if CP.carName == 'hyundai':
+    from openpilot.selfdrive.car.hyundai.radar_interface import CANFD_RADAR_DBC
+    from openpilot.selfdrive.car.hyundai.values import DBC as HYUNDAI_DBC
+    if HYUNDAI_DBC[CP.carFingerprint]['radar'] == CANFD_RADAR_DBC:
+      fuse_tracks = Params().get_bool("HyundaiRadarTracksFusion")
+
   rk = Ratekeeper(1.0 / CP.radarTimeStep, print_delay_threshold=None)
-  RD = RadarD(CP.radarTimeStep, RI.delay)
+  RD = RadarD(CP.radarTimeStep, RI.delay, fuse_tracks=fuse_tracks)
 
   while 1:
     can_strings = messaging.drain_sock_raw(can_sock, wait_for_one=True)
