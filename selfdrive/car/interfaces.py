@@ -424,10 +424,12 @@ class CarInterfaceBase(ABC):
       else:
         self.no_steer_warning = False
 
+        # override-induced fault: the driver is steering, no alert needed at all
+        if self.override_hold > 0:
+          self.silent_steer_warning = True
         # if the user overrode recently, show a less harsh alert; a genuine fault with no
         # driver input (override_hold expired) still raises the normal warning
-        if self.silent_steer_warning or cs_out.standstill or self.override_hold > 0 \
-           or self.steering_unpressed < int(1.5 / DT_CTRL):
+        elif self.silent_steer_warning or cs_out.standstill or self.steering_unpressed < int(1.5 / DT_CTRL):
           self.silent_steer_warning = True
           events.add(EventName.steerTempUnavailableSilent)
         else:
