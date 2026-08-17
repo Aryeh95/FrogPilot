@@ -63,7 +63,7 @@ FrogPilotVisualsPanel::FrogPilotVisualsPanel(FrogPilotSettingsWindow *parent) : 
     {"AdjacentPathMetrics", tr("Adjacent Path Metrics"), tr("<b>Show the width of the adjacent lanes.</b>"), ""},
     {"DeveloperMetrics", tr("Developer Metrics"), tr("<b>Performance data, sensor readings, and system metrics</b> for debugging and optimizing openpilot."), ""},
     {"BorderMetrics", tr("Border Metrics"), tr("<b>Show statuses along the border of the driving screen.</b><br><br><b>Blind Spot</b>: The border turns red when a vehicle is in a blind spot<br><b>Steering Torque</b>: The border goes from green to red according to how much steering torque is being used<br><b>Turn Signal</b>: The border flashes yellow when a turn signal is on"), ""},
-    {"LeadInfo", tr("Lead Info"), tr("<b>Show each tracked vehicle's distance and speed</b> below its marker."), ""},
+    {"LeadInfo", tr("Lead Info"), tr("<b>Show stats for each tracked vehicle</b> below its marker.<br><br><b>Distance</b>: How far ahead the vehicle is<br><b>Desired Gap</b>: The gap openpilot is aiming for<br><b>Speed</b>: The vehicle's speed<br><b>Time Gap</b>: The time gap to the vehicle<br><br>Adjacent leads show the \"Distance\" and \"Speed\" stats."), ""},
     {"FPSCounter", tr("FPS Display"), tr("<b>Show the frames per second (FPS)</b> at the bottom of the driving screen."), ""},
     {"NumericalTemp", tr("Numerical Temperature Gauge"), tr("<b>Show a numerical temperature in the sidebar</b> instead of the status labels."), ""},
     {"SidebarMetrics", tr("Sidebar Metrics"), tr("<b>Display system information</b> (CPU, GPU, RAM usage, IP address, device storage) in the sidebar."), ""},
@@ -147,6 +147,10 @@ FrogPilotVisualsPanel::FrogPilotVisualsPanel(FrogPilotSettingsWindow *parent) : 
       std::vector<QString> borderToggleNames{tr("Blind Spot"), tr("Steering Torque"), tr("Turn Signal")};
       borderMetricsButton = new FrogPilotButtonToggleControl(param, title, desc, icon, borderToggles, borderToggleNames);
       visualToggle = borderMetricsButton;
+    } else if (param == "LeadInfo") {
+      std::vector<QString> leadInfoToggles{"LeadInfoDistance", "LeadInfoDesired", "LeadInfoSpeed", "LeadInfoTimeGap"};
+      std::vector<QString> leadInfoToggleNames{tr("Distance"), tr("Desired Gap"), tr("Speed"), tr("Time Gap")};
+      visualToggle = new FrogPilotButtonToggleControl(param, title, desc, icon, leadInfoToggles, leadInfoToggleNames);
     } else if (param == "NumericalTemp") {
       std::vector<QString> temperatureToggles{"Fahrenheit"};
       std::vector<QString> temperatureToggleNames{tr("Fahrenheit")};

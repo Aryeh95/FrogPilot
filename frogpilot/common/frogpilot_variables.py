@@ -309,6 +309,10 @@ frogpilot_default_params: list[tuple[str, str | bytes, int, str]] = [
   ("LeadDepartingAlert", "0", 0, "0"),
   ("LeadDetectionThreshold", "35", 3, "50"),
   ("LeadInfo", "1", 3, "0"),
+  ("LeadInfoDesired", "1", 3, "0"),
+  ("LeadInfoDistance", "1", 3, "0"),
+  ("LeadInfoSpeed", "1", 3, "0"),
+  ("LeadInfoTimeGap", "1", 3, "0"),
   ("LiveDelay", "", 0, ""),
   ("LKASButtonControl", "5", 2, "0"),
   ("LockDoors", "1", 0, "0"),
@@ -766,6 +770,10 @@ class FrogPilotVariables:
     toggle.show_fps = developer_metrics and (params.get_bool("FPSCounter") if toggle.tuning_level >= level["FPSCounter"] else default.get_bool("FPSCounter")) or toggle.debug_mode
     toggle.adjacent_path_metrics = (developer_metrics and params.get_bool("AdjacentPathMetrics") if toggle.tuning_level >= level["AdjacentPathMetrics"] else default.get_bool("AdjacentPathMetrics")) or toggle.debug_mode
     toggle.lead_metrics = (developer_metrics and params.get_bool("LeadInfo") if toggle.tuning_level >= level["LeadInfo"] else default.get_bool("LeadInfo")) or toggle.debug_mode
+    toggle.lead_metrics_desired = toggle.lead_metrics and (params.get_bool("LeadInfoDesired") if toggle.tuning_level >= level["LeadInfoDesired"] else default.get_bool("LeadInfoDesired")) or toggle.debug_mode
+    toggle.lead_metrics_distance = toggle.lead_metrics and (params.get_bool("LeadInfoDistance") if toggle.tuning_level >= level["LeadInfoDistance"] else default.get_bool("LeadInfoDistance")) or toggle.debug_mode
+    toggle.lead_metrics_speed = toggle.lead_metrics and (params.get_bool("LeadInfoSpeed") if toggle.tuning_level >= level["LeadInfoSpeed"] else default.get_bool("LeadInfoSpeed")) or toggle.debug_mode
+    toggle.lead_metrics_time_gap = toggle.lead_metrics and (params.get_bool("LeadInfoTimeGap") if toggle.tuning_level >= level["LeadInfoTimeGap"] else default.get_bool("LeadInfoTimeGap")) or toggle.debug_mode
     toggle.numerical_temp = developer_metrics and (params.get_bool("NumericalTemp") if toggle.tuning_level >= level["NumericalTemp"] else default.get_bool("NumericalTemp")) or toggle.debug_mode
     toggle.fahrenheit = toggle.numerical_temp and (params.get_bool("Fahrenheit") if toggle.tuning_level >= level["Fahrenheit"] else default.get_bool("Fahrenheit")) and not toggle.debug_mode
     toggle.cpu_metrics = developer_metrics and (params.get_bool("ShowCPU") if toggle.tuning_level >= level["ShowCPU"] else default.get_bool("ShowCPU")) or toggle.debug_mode

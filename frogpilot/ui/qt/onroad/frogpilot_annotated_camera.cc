@@ -535,23 +535,35 @@ void FrogPilotAnnotatedCameraWidget::paintLeadMetrics(QPainter &p, bool adjacent
   p.setFont(InterFont(40, QFont::Bold));
   p.setPen(QPen(whiteColor()));
 
-  QString text;
-  if (adjacent) {
-    text = QString("%1 %2 | %3 %4")
-              .arg(qRound(leadDistance * distanceConversion))
-              .arg(leadDistanceUnit)
-              .arg(qRound(leadSpeed * speedConversionMetrics))
-              .arg(leadSpeedUnit);
-  } else {
-    text = QString("%1 %2 (%3) | %4 %5 | %6 %7")
-              .arg(qRound(leadDistance * distanceConversion))
-              .arg(leadDistanceUnit)
-              .arg(QString(tr("Desired: %1")).arg(frogpilotPlan.getDesiredFollowDistance() * distanceConversion))
-              .arg(qRound(leadSpeed * speedConversionMetrics))
-              .arg(leadSpeedUnit)
-              .arg(QString::number(leadDistance / std::max(speed / speedConversion, 1.0f), 'f', 2))
-              .arg(tr("s"));
+  bool showDistance = frogpilot_toggles.value("lead_metrics_distance").toBool();
+  bool showDesired = frogpilot_toggles.value("lead_metrics_desired").toBool() && !adjacent;
+  bool showSpeed = frogpilot_toggles.value("lead_metrics_speed").toBool();
+  bool showTimeGap = frogpilot_toggles.value("lead_metrics_time_gap").toBool() && !adjacent;
+
+  QStringList parts;
+  if (showDistance) {
+    QString distancePart = QString("%1 %2").arg(qRound(leadDistance * distanceConversion)).arg(leadDistanceUnit);
+    if (showDesired) {
+      distancePart += QString(" (%1)").arg(QString(tr("Desired: %1")).arg(frogpilotPlan.getDesiredFollowDistance() * distanceConversion));
+    }
+    parts << distancePart;
+  } else if (showDesired) {
+    parts << QString(tr("Desired: %1")).arg(frogpilotPlan.getDesiredFollowDistance() * distanceConversion);
   }
+  if (showSpeed) {
+    parts << QString("%1 %2").arg(qRound(leadSpeed * speedConversionMetrics)).arg(leadSpeedUnit);
+  }
+  if (showTimeGap) {
+    parts << QString("%1 %2").arg(QString::number(leadDistance / std::max(speed / speedConversion, 1.0f), 'f', 2)).arg(tr("s"));
+  }
+
+  if (parts.isEmpty()) {
+    if (!adjacent) {
+      leadTextRect = QRect();
+    }
+    return;
+  }
+  QString text = parts.join(" | ");
 
   QFontMetrics metrics(p.font());
   int textHeight = metrics.height();
