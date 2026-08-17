@@ -490,7 +490,7 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::RadarState
   painter.drawPolygon(chevron, std::size(chevron));
 
   if (fs->frogpilot_toggles.value("lead_metrics").toBool()) {
-    frogpilot_nvg->paintLeadMetrics(painter, adjacent, chevron, frogpilotPlan, lead_data);
+    frogpilot_nvg->paintLeadMetrics(painter, adjacent, chevron, frogpilotPlan, lead_data, fs->frogpilot_toggles);
   }
 
   painter.restore();
