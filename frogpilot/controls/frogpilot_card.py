@@ -140,7 +140,7 @@ class FrogPilotCard:
     frogpilotCarState.distanceVeryLongPressed = self.gap_counter >= self.very_long_press_threshold
     frogpilotCarState.forceCoast = self.force_coast
     frogpilotCarState.isParked = carState.gearShifter == GearShifter.park
-    frogpilotCarState.pauseLateral = self.pause_lateral
+    frogpilotCarState.pauseLateral = self.pause_lateral or (self.car.frogpilot_toggles.pause_lateral_on_override and carState.steeringPressed)
     frogpilotCarState.pauseLongitudinal = self.pause_longitudinal
     frogpilotCarState.trafficModeEnabled = self.traffic_mode_enabled
 
