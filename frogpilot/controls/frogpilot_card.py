@@ -134,7 +134,7 @@ class FrogPilotCard:
     frogpilotCarState.experimentalModePressCount = self.experimental_mode_press_count
     frogpilotCarState.forceCoast = self.force_coast
     frogpilotCarState.isParked = carState.gearShifter == frogpilot_variables.GearShifter.park
-    frogpilotCarState.pauseLateral = self.pause_lateral
+    frogpilotCarState.pauseLateral = self.pause_lateral or (self.car.frogpilot_toggles.pause_lateral_on_override and carState.steeringPressed)
     frogpilotCarState.pauseLongitudinal = self.pause_longitudinal
     frogpilotCarState.trafficModeEnabled = self.traffic_mode_enabled
     frogpilotCarState.vEgo = carState.vEgo

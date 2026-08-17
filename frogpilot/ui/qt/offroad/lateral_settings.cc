@@ -59,6 +59,7 @@ FrogPilotLateralPanel::FrogPilotLateralPanel(FrogPilotSettingsWindow *parent, bo
     {"TurnDesires", tr("Steer Into Turns Below Lane Change Speed"), tr("<b>With your turn signal on below your minimum lane change speed, openpilot steers with you into the turn instead of pulling back toward the lane you're leaving.</b><br><br>Use it for intersections and tight exit ramps, where openpilot normally works against your steering. You still choose where and when to turn."), ""},
 
     {"QOLLateral", tr("Quality of Life"), tr("<b>Hand the wheel back to yourself below a speed you set.</b>"), "../../frogpilot/assets/toggle_icons/icon_quality_of_life.png"},
+    {"PauseLateralOnOverride", tr("Pause Steering on Driver Override"), tr("<b>openpilot stops steering while you turn the wheel yourself, so it doesn't fight your override.</b><br><br>Steering resumes as soon as you let go of the wheel."), ""},
     {"PauseLateralSpeed", tr("Pause Steering Below"), tr("<b>openpilot stops steering below the speed you set and hands the wheel back to you, and \"Turn Signal Only\" narrows that to just the moments a turn signal is flashing.</b><br><br>The gas and brake carry on as normal and nothing warns you when the steering stops, so be ready to take the wheel at low speed. This pauses \"Always On Lateral\" too."), ""}
   };
 

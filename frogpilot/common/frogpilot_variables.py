@@ -1029,6 +1029,7 @@ SETTING_LABELS = {
   "PathEdgeWidth": {"name": "Path Edges Width", "unit": "%", "values": {0: "Off"}},
   "PathWidth": {"decimals": 1, "name": "Path Width", "unit": (" feet", " meters"), "values": ({0: "Off", 1: "1.0 foot"}, {0: "Off", 1: "1.0 meter"})},
   "PauseAOLOnBrake": {"name": "Always On Lateral: Pause on Brake Press Below", "unit": (" mph", " km/h"), "values": {0: "Off"}},
+  "PauseLateralOnOverride": {"name": "Pause Steering on Driver Override"},
   "PauseLateralOnSignal": {"name": "Pause Steering Below (Turn Signal Only)"},
   "PauseLateralSpeed": {"name": "Pause Steering Below", "unit": (" mph", " km/h"), "values": {0: "Off"}},
   "PedalsOnUI": {"name": "Gas / Brake Pedal Indicators"},
@@ -1417,6 +1418,7 @@ frogpilot_default_params: list[tuple[str, str | bytes, int, str]] = [
   ("PathEdgeWidth", "20", 2, "0"),
   ("PathWidth", "6.1", 2, "5.9"),
   ("PauseAOLOnBrake", "0", 1, "0"),
+  ("PauseLateralOnOverride", "0", 1, "0"),
   ("PauseLateralOnSignal", "0", 1, "0"),
   ("PauseLateralSpeed", "0", 1, "0"),
   ("PedalsOnUI", "0", 1, "0"),
@@ -2081,6 +2083,7 @@ class FrogPilotVariables:
     quality_of_life_lateral = self.get_value("QOLLateral")
     toggle.pause_lateral_below_speed = self.get_value("PauseLateralSpeed", cast=float, condition=quality_of_life_lateral, conversion=speed_conversion)
     toggle.pause_lateral_below_signal = self.get_value("PauseLateralOnSignal", condition=toggle.pause_lateral_below_speed != 0)
+    toggle.pause_lateral_on_override = self.get_value("PauseLateralOnOverride", condition=quality_of_life_lateral)
 
     quality_of_life_longitudinal = toggle.openpilot_longitudinal and self.get_value("QOLLongitudinal")
     toggle.cruise_increase = self.get_value("CustomCruise", cast=float, condition=not pcm_cruise and quality_of_life_longitudinal)
