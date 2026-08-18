@@ -178,6 +178,7 @@ FrogPilotVehiclesPanel::FrogPilotVehiclesPanel(FrogPilotSettingsWindow *parent) 
     {"HKGToggles", tr("Hyundai/Kia/Genesis Settings"), tr("<b>FrogPilot features for Genesis, Hyundai, and Kia vehicles.</b>"), ""},
     {"NewLongAPI", tr("comma's New Longitudinal API"), tr("<b>comma's new gas and brake control system</b> that improves acceleration and braking but may cause issues on some Genesis/Hyundai/Kia vehicles."), ""},
     {"TacoTuneHacks", tr("\"Taco Bell Run\" Torque Hack"), tr("<b>The steering torque hack from comma's 2022 \"Taco Bell Run\".</b> Designed to increase steering torque at low speeds for left and right turns."), ""},
+    {"HyundaiRadarTracksFusion", tr("Use Radar Tracks for Lead Detection"), tr("<b>Fuse the vehicle's native radar tracks into lead detection.</b> Lead distance and speed come from radar measurements instead of vision estimates, improving accuracy for displays and openpilot longitudinal control."), ""},
 
     {"HondaToggles", tr("Acura/Honda Settings"), tr("<b>FrogPilot features for Acura and Honda vehicles.</b>"), ""},
     {"HondaAltTune", tr("Gentle Following"), tr("<b>Reduces jerky acceleration and braking when following a lead vehicle.</b> Ideal for stop-and-go traffic."), ""},
@@ -314,7 +315,7 @@ FrogPilotVehiclesPanel::FrogPilotVehiclesPanel(FrogPilotSettingsWindow *parent) 
 
   static_cast<FrogPilotParamValueControl*>(toggles["LockDoorsTimer"])->setWarning("<b>Warning:</b> openpilot can't detect if keys are still inside the car, so ensure you have a spare key to prevent accidental lockouts!");
 
-  QSet<QString> rebootKeys = {"HondaAltTune", "NewLongAPI", "TacoTuneHacks", "ToyotaDSUBypass"};
+  QSet<QString> rebootKeys = {"HondaAltTune", "HyundaiRadarTracksFusion", "NewLongAPI", "TacoTuneHacks", "ToyotaDSUBypass"};
   for (const QString &key : rebootKeys) {
     QObject::connect(static_cast<ToggleControl*>(toggles[key]), &ToggleControl::toggleFlipped, [key, this](bool state) {
       if (started) {
@@ -438,6 +439,10 @@ void FrogPilotVehiclesPanel::updateToggles() {
 
     else if (key == "TacoTuneHacks") {
       setVisible &= parent->isHKGCanFd;
+    }
+
+    else if (key == "HyundaiRadarTracksFusion") {
+      setVisible &= parent->hasRadar;
     }
 
     else if (key == "ToyotaDSUBypass") {

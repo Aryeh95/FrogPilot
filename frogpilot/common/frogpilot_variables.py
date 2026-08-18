@@ -287,6 +287,7 @@ frogpilot_default_params: list[tuple[str, str | bytes, int, str]] = [
   ("HumanAcceleration", "1", 2, "0"),
   ("HumanFollowing", "1", 2, "0"),
   ("HumanLaneChanges", "1", 2, "0"),
+  ("HyundaiRadarTracksFusion", "0", 2, "0"),
   ("IncreasedStoppedDistance", "0", 1, "0"),
   ("IncreasedStoppedDistanceLowVisibility", "0", 2, "0"),
   ("IncreasedStoppedDistanceRain", "0", 2, "0"),
