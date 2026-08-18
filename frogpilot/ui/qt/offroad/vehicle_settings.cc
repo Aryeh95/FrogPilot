@@ -180,6 +180,7 @@ FrogPilotVehiclesPanel::FrogPilotVehiclesPanel(FrogPilotSettingsWindow *parent, 
 
     {"HKGToggles", tr("Hyundai/Kia/Genesis Settings"), tr("<b>Settings that only work on Genesis, Hyundai, and Kia cars, covering openpilot's newer gas and brake control and a steering torque hack.</b><br><br>Which of these you see depends on which system your car uses, and the steering hack only appears on cars using CAN-FD."), ""},
     {"NewLongAPI", tr("comma's New Longitudinal API"), tr("<b>Use comma's newer way of sending gas and brake commands to the car, which usually makes speeding up and slowing down smoother.</b><br><br>This is already on. It is not a good fit for every Genesis, Hyundai, or Kia, so if your car brakes or accelerates oddly, switch it off and reboot."), ""},
+    {"HyundaiRadarTracksFusion", tr("Use Radar Tracks for Lead Detection"), tr("<b>Feed the car's own radar tracks into lead detection.</b><br><br>Lead distance and speed come from radar measurements instead of camera estimates, which makes the lead markers and openpilot's gas and brake control more accurate. Takes effect after a reboot."), ""},
     {"TacoTuneHacks", tr("\"Taco Bell Run\" Torque Hack"), tr("<b>Let openpilot pull the wheel harder through turns, using the trick comma demonstrated on their 2022 \"Taco Bell Run\" drive.</b><br><br>It raises the steering limit everywhere, not just at low speed, and it relaxes one of the safety checks that normally caps steering effort. You will also have to grip the wheel more firmly to take over."), ""},
 
     {"SubaruToggles", tr("Subaru Settings"), tr("<b>Settings that only work on Subaru cars.</b><br><br>There is one, and it decides whether your car pulls away by itself after a stop."), ""},
@@ -319,7 +320,7 @@ FrogPilotVehiclesPanel::FrogPilotVehiclesPanel(FrogPilotSettingsWindow *parent, 
 
   static_cast<FrogPilotParamValueControl*>(toggles["LockDoorsTimer"])->setWarning(tr("<b>Warning:</b> openpilot can't tell whether your keys are still in the car, so keep a spare somewhere safe before you rely on this!"));
 
-  QSet<QString> rebootKeys = {"HondaAltTune", "NewLongAPI", "SubaruSNG", "TacoTuneHacks", "ToyotaDSUBypass"};
+  QSet<QString> rebootKeys = {"HondaAltTune", "HyundaiRadarTracksFusion", "NewLongAPI", "SubaruSNG", "TacoTuneHacks", "ToyotaDSUBypass"};
   for (const QString &key : rebootKeys) {
     QObject::connect(static_cast<ToggleControl*>(toggles[key]), &ToggleControl::toggleFlipped, [this](bool) {
       if (uiState()->scene.started && FrogPilotConfirmationDialog::toggleReboot(this)) {
@@ -433,6 +434,10 @@ void FrogPilotVehiclesPanel::updateToggles() {
 
     else if (key == "SubaruSNG") {
       setVisible &= parent->hasSNG;
+    }
+
+    else if (key == "HyundaiRadarTracksFusion") {
+      setVisible &= parent->hasRadar;
     }
 
     else if (key == "TacoTuneHacks") {

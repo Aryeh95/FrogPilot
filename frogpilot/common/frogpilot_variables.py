@@ -889,6 +889,7 @@ SETTING_LABELS = {
   "HumanAcceleration": {"name": "Human-Like Acceleration"},
   "HumanFollowing": {"name": "Human-Like Following"},
   "HumanLaneChanges": {"name": "Human-Like Lane Changes"},
+  "HyundaiRadarTracksFusion": {"name": "Hyundai/Kia/Genesis Settings: Use Radar Tracks for Lead Detection"},
   "IconPack": {"name": "Icon Pack"},
   "IncreasedStoppedDistance": {
     "decimals": 1,
@@ -1344,6 +1345,7 @@ frogpilot_default_params: list[tuple[str, str | bytes, int, str]] = [
   ("HumanAcceleration", "1", 2, "0"),
   ("HumanFollowing", "1", 2, "0"),
   ("HumanLaneChanges", "1", 2, "0"),
+  ("HyundaiRadarTracksFusion", "0", 2, "0"),
   ("IconPack", "frog-animated", 0, "stock"),
   ("IncreasedStoppedDistance", "0", 1, "0"),
   ("IncreasedStoppedDistanceLowVisibility", "0", 2, "0"),
