@@ -871,6 +871,8 @@ SETTING_LABELS = {
   "FullMap": {"name": "Larger Map Display: Full Map"},
   "GoatScream": {"name": "Goat Scream"},
   "GreenLightAlert": {"name": "Green Light Alert"},
+  "HandsOnWheelReminder": {"name": "Hands on Wheel Reminder"},
+  "HandsOnWheelReminderDelay": {"name": "Hands on Wheel Reminder Delay", "unit": " seconds"},
   "GsmApn": {"name": "APN Setting"},
   "GsmMetered": {"name": "Cellular Metered"},
   "GsmRoaming": {"name": "Enable Roaming"},
@@ -1328,6 +1330,8 @@ frogpilot_default_params: list[tuple[str, str | bytes, int, str]] = [
   ("GithubUsername", "", 0, ""),
   ("GoatScream", "0", 1, "0"),
   ("GreenLightAlert", "0", 0, "0"),
+  ("HandsOnWheelReminder", "0", 0, "0"),
+  ("HandsOnWheelReminderDelay", "45", 0, "45"),
   ("GsmApn", "", 0, ""),
   ("GsmRoaming", "1", 0, "0"),
   ("HideAlerts", "0", 2, "0"),
@@ -1869,6 +1873,8 @@ class FrogPilotVariables:
     toggle.goat_scream_alert = self.get_value("GoatScream", condition=custom_alerts)
     toggle.green_light_alert = self.get_value("GreenLightAlert", condition=custom_alerts)
     toggle.lead_departing_alert = self.get_value("LeadDepartingAlert", condition=custom_alerts)
+    toggle.hands_on_wheel_reminder = self.get_value("HandsOnWheelReminder", condition=custom_alerts)
+    toggle.hands_on_wheel_reminder_delay = self.get_value("HandsOnWheelReminderDelay", cast=int)
     toggle.loud_blindspot_alert = self.get_value("LoudBlindspotAlert", condition=has_bsm and custom_alerts)
     toggle.speed_limit_changed_alert = self.get_value("SpeedLimitChangedAlert", condition=custom_alerts)
 

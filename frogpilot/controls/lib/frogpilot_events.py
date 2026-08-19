@@ -14,6 +14,7 @@ from openpilot.frogpilot.common import frogpilot_paths, frogpilot_variables
 DEJA_VU_G_FORCE = 0.75
 GREEN_LIGHT_LOOKAHEAD = 6
 GREEN_LIGHT_TIME = 0.35
+HANDS_ON_TORQUE_THRESHOLD = 240  # measured: ~243 resets the stock timer, ~156 does not
 RANDOM_EVENTS_CHANCE = 0.01
 RANDOM_EVENTS_LENGTH = 5
 
@@ -34,6 +35,8 @@ class FrogPilotEvents:
     self.stopped_for_light = False
 
     self.green_light_timer = 0
+    self.hands_on_reminded = False
+    self.hands_on_timer = 0
     self.max_acceleration = 0
     self.random_event_timer = 0
     self.tracked_lead_distance = 0
@@ -95,6 +98,23 @@ class FrogPilotEvents:
     holiday_unplayed = "holidayActive" not in self.played_events
     if holiday_unplayed and self.startup_seen and alerts_empty and len(self.events) == 0 and frogpilot_toggles.current_holiday_theme != "stock":
       self.events.add(FrogPilotEventName.holidayActive)
+
+    # The stock hands-on-wheel monitor expires after roughly a minute without real
+    # column torque and then limits the car's speed. Remind the driver to nudge the
+    # wheel before that happens; a genuine nudge resets the car's own timer.
+    if frogpilot_toggles.hands_on_wheel_reminder and sm["carControl"].latActive and not sm["carState"].standstill:
+      if abs(sm["carState"].steeringTorque) > HANDS_ON_TORQUE_THRESHOLD:
+        self.hands_on_timer = 0
+        self.hands_on_reminded = False
+      else:
+        self.hands_on_timer += DT_MDL
+
+      if self.hands_on_timer >= frogpilot_toggles.hands_on_wheel_reminder_delay and not self.hands_on_reminded:
+        self.events.add(FrogPilotEventName.handsOnWheelReminder)
+        self.hands_on_reminded = True
+    else:
+      self.hands_on_timer = 0
+      self.hands_on_reminded = False
 
     if not sm["carState"].standstill:
       self.tracked_lead_distance = self.frogpilot_planner.lead_one.dRel if self.frogpilot_planner.lead_one.status else 0
