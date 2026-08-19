@@ -1090,6 +1090,14 @@ FROGPILOT_EVENTS: dict[int, dict[str, Alert | AlertCallbackType]] = {
       Priority.MID, VisualAlert.none, AudibleAlert.prompt, 3.),
   },
 
+  FrogPilotEventName.handsOnWheelReminder: {
+    ET.PERMANENT: Alert(
+      "Nudge the steering wheel",
+      "Your car is about to limit speed",
+      FrogPilotAlertStatus.userPrompt, AlertSize.mid,
+      Priority.MID, VisualAlert.steerRequired, AudibleAlert.prompt, 3.),
+  },
+
   FrogPilotEventName.noLaneAvailable: {
     ET.WARNING: no_lane_available_alert,
   },

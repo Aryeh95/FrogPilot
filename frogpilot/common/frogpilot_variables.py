@@ -270,6 +270,8 @@ frogpilot_default_params: list[tuple[str, str | bytes, int, str]] = [
   ("GithubUsername", "", 0, ""),
   ("GoatScream", "0", 1, "0"),
   ("GreenLightAlert", "0", 0, "0"),
+  ("HandsOnWheelReminder", "0", 0, "0"),
+  ("HandsOnWheelReminderDelay", "45", 0, "45"),
   ("GsmApn", "", 0, ""),
   ("GsmRoaming", "1", 0, "0"),
   ("HideAlerts", "0", 2, "0"),
@@ -726,6 +728,8 @@ class FrogPilotVariables:
     toggle.goat_scream_alert = toggle.custom_alerts and (params.get_bool("GoatScream") if toggle.tuning_level >= level["GoatScream"] else default.get_bool("GoatScream"))
     toggle.green_light_alert = toggle.custom_alerts and (params.get_bool("GreenLightAlert") if toggle.tuning_level >= level["GreenLightAlert"] else default.get_bool("GreenLightAlert"))
     toggle.lead_departing_alert = toggle.custom_alerts and (params.get_bool("LeadDepartingAlert") if toggle.tuning_level >= level["LeadDepartingAlert"] else default.get_bool("LeadDepartingAlert"))
+    toggle.hands_on_wheel_reminder = toggle.custom_alerts and (params.get_bool("HandsOnWheelReminder") if toggle.tuning_level >= level["HandsOnWheelReminder"] else default.get_bool("HandsOnWheelReminder"))
+    toggle.hands_on_wheel_reminder_delay = params.get_int("HandsOnWheelReminderDelay") if toggle.tuning_level >= level["HandsOnWheelReminderDelay"] else default.get_int("HandsOnWheelReminderDelay")
     toggle.loud_blindspot_alert = has_bsm and toggle.custom_alerts and (params.get_bool("LoudBlindspotAlert") if toggle.tuning_level >= level["LoudBlindspotAlert"] else default.get_bool("LoudBlindspotAlert"))
     toggle.speed_limit_changed_alert = toggle.custom_alerts and (params.get_bool("SpeedLimitChangedAlert") if toggle.tuning_level >= level["SpeedLimitChangedAlert"] else default.get_bool("SpeedLimitChangedAlert"))
 

@@ -95,6 +95,7 @@ struct FrogPilotCarEvent @0x81c2f05a394cf4af {
     vCruise69 @26;
     yourFrogTriedToKillMe @27;
     youveGotMail @28;
+    handsOnWheelReminder @29;
   }
 }
 
