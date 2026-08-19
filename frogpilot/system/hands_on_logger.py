@@ -15,6 +15,7 @@ Writes /data/media/0/hands_on_events.csv. Diagnostic only: it reads state and
 never sends anything to the car.
 """
 import os
+from collections import deque
 
 import cereal.messaging as messaging
 from openpilot.common.realtime import DT_CTRL, Priority, config_realtime_process
@@ -31,6 +32,7 @@ WARNING_VALUE = 0x60
 TORQUE_THRESHOLD = 240  # measured: ~243 resets the stock timer, ~156 does not
 PREDICT_AFTER = 45.0    # quiet seconds before we predict a warning
 WATCH_WINDOW = 60.0     # seconds to watch for the warning after predicting
+WINDOW_S = 60.0         # rolling window the logged conditions describe
 
 HEADER = ("event,quiet_time_s,time_to_warning_s,v_ego_mph,set_speed_mph,"
           "angle_mean,angle_max,driver_tq_mean,driver_tq_max,eps_tq_mean,eps_tq_max,"
@@ -38,31 +40,33 @@ HEADER = ("event,quiet_time_s,time_to_warning_s,v_ego_mph,set_speed_mph,"
 
 
 class Window:
-  """Running stats over the current quiet period."""
+  """Rolling stats over the most recent WINDOW_S of driving.
+
+  A rolling window keeps hit and miss rows comparable: both describe the
+  conditions leading into the decision point, rather than everything since the
+  driver last touched the wheel (which can be many minutes on a hands-off drive).
+  """
   def __init__(self):
-    self.reset()
+    self.samples = deque(maxlen=int(WINDOW_S / DT_CTRL))
 
   def reset(self):
-    self.n = 0
-    self.angle_sum = self.angle_max = 0.0
-    self.tq_sum = self.tq_max = 0.0
-    self.eps_sum = self.eps_max = 0.0
-    self.lat_active = 0
+    self.samples.clear()
 
   def add(self, angle, tq, eps, lat_active):
-    self.n += 1
-    a, t, e = abs(angle), abs(tq), abs(eps)
-    self.angle_sum += a; self.angle_max = max(self.angle_max, a)
-    self.tq_sum += t; self.tq_max = max(self.tq_max, t)
-    self.eps_sum += e; self.eps_max = max(self.eps_max, e)
-    self.lat_active += 1 if lat_active else 0
+    self.samples.append((abs(angle), abs(tq), abs(eps), 1 if lat_active else 0))
 
   def fields(self):
-    n = max(self.n, 1)
-    return (f"{self.angle_sum/n:.2f},{self.angle_max:.2f},"
-            f"{self.tq_sum/n:.0f},{self.tq_max:.0f},"
-            f"{self.eps_sum/n:.0f},{self.eps_max:.0f},"
-            f"{self.lat_active/n:.2f}")
+    if not self.samples:
+      return "0,0,0,0,0,0,0"
+    n = len(self.samples)
+    ang = [s[0] for s in self.samples]
+    tq = [s[1] for s in self.samples]
+    eps = [s[2] for s in self.samples]
+    lat = sum(s[3] for s in self.samples)
+    return (f"{sum(ang)/n:.2f},{max(ang):.2f},"
+            f"{sum(tq)/n:.0f},{max(tq):.0f},"
+            f"{sum(eps)/n:.0f},{max(eps):.0f},"
+            f"{lat/n:.2f}")
 
 
 def write_row(row):
@@ -87,6 +91,7 @@ def main():
   predicted = False
   predicted_quiet = 0.0
   watch_time = 0.0
+  warning_time = 0.0
   warning_prev = False
 
   while True:
@@ -117,7 +122,6 @@ def main():
       quiet_time = 0.0
       predicted = False
       watch_time = 0.0
-      window.reset()
     else:
       quiet_time += DT_CTRL
 
@@ -128,6 +132,12 @@ def main():
       write_row(f"{label},{quiet_time:.1f},{ttw},{mph:.1f},{set_mph:.1f},{window.fields()}")
       predicted = False
       watch_time = 0.0
+      warning_time = 0.0
+    elif warning:
+      warning_time += DT_CTRL
+    elif warning_prev:
+      write_row(f"cleared,{quiet_time:.1f},{warning_time:.1f},{mph:.1f},{set_mph:.1f},{window.fields()}")
+      warning_time = 0.0
     warning_prev = warning
 
     # open a prediction once the car has been quiet long enough
