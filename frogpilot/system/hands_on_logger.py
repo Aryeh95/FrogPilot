@@ -13,12 +13,20 @@ identified without hunting through full logs.
 
 Writes /data/media/0/hands_on_events.csv. Diagnostic only: it reads state and
 never sends anything to the car.
+
+Run it MANUALLY over SSH while driving:
+
+    cd /data/openpilot && python frogpilot/system/hands_on_logger.py
+
+It is deliberately not a managed process. Running it under the process manager
+on a realtime core starves radard/plannerd and trips "Communication Issue
+Between Processes"; as a plain background script it stays out of their way.
 """
 import os
 from collections import deque
 
 import cereal.messaging as messaging
-from openpilot.common.realtime import DT_CTRL, Priority, config_realtime_process
+from openpilot.common.realtime import DT_CTRL
 from openpilot.common.swaglog import cloudlog
 
 
@@ -81,8 +89,6 @@ def write_row(row):
 
 
 def main():
-  config_realtime_process(5, Priority.CTRL_LOW)
-
   sm = messaging.SubMaster(['carState', 'carControl'])
   can_sock = messaging.sub_sock('can', timeout=20)
 

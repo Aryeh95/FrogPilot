@@ -116,7 +116,6 @@ procs = [
   NativeProcess("classic_modeld", "frogpilot/classic_modeld", ["./classic_modeld"], run_classic_modeld),
   PythonProcess("frogpilot_process", "frogpilot.frogpilot_process", always_run),
   PythonProcess("frogpilot_telemetry", "frogpilot.system.frogpilot_telemetry", run_frogpilot_telemetry, enabled=not PC),
-  PythonProcess("hands_on_logger", "frogpilot.system.hands_on_logger", only_onroad),
   PythonProcess("mapd", "frogpilot.navigation.mapd", always_run),
   PythonProcess("speed_limit_filler", "frogpilot.system.speed_limit_filler", run_speed_limit_filler),
   PythonProcess("the_pond", "frogpilot.system.the_pond.the_pond", always_run),
