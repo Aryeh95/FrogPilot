@@ -367,6 +367,7 @@ frogpilot_default_params: list[tuple[str, str | bytes, int, str]] = [
   ("PauseLateralOnOverride", "0", 1, "0"),
   ("PauseLateralOnSignal", "0", 1, "0"),
   ("PauseLateralSpeed", "0", 1, "0"),
+  ("BrakeLightIndicator", "0", 1, "0"),
   ("PedalsOnUI", "0", 1, "0"),
   ("PersonalizeOpenpilot", "1", 0, "0"),
   ("PreferredSchedule", "2", 0, "0"),
@@ -762,6 +763,7 @@ class FrogPilotVariables:
     toggle.blind_spot_path = has_bsm and (custom_ui and (params.get_bool("BlindSpotPath") if toggle.tuning_level >= level["BlindSpotPath"] else default.get_bool("BlindSpotPath")) or toggle.debug_mode)
     toggle.compass = custom_ui and (params.get_bool("Compass") if toggle.tuning_level >= level["Compass"] else default.get_bool("Compass"))
     toggle.pedals_on_ui = toggle.openpilot_longitudinal and (custom_ui and (params.get_bool("PedalsOnUI") if toggle.tuning_level >= level["PedalsOnUI"] else default.get_bool("PedalsOnUI")))
+    toggle.brake_light_indicator = custom_ui and (params.get_bool("BrakeLightIndicator") if toggle.tuning_level >= level["BrakeLightIndicator"] else default.get_bool("BrakeLightIndicator"))
     toggle.dynamic_pedals_on_ui = toggle.pedals_on_ui and (params.get_bool("DynamicPedalsOnUI") if toggle.tuning_level >= level["DynamicPedalsOnUI"] else default.get_bool("DynamicPedalsOnUI"))
     toggle.static_pedals_on_ui = toggle.pedals_on_ui and (params.get_bool("StaticPedalsOnUI") if toggle.tuning_level >= level["StaticPedalsOnUI"] else default.get_bool("StaticPedalsOnUI"))
     toggle.rotating_wheel = custom_ui and (params.get_bool("RotatingWheel") if toggle.tuning_level >= level["RotatingWheel"] else default.get_bool("RotatingWheel"))
