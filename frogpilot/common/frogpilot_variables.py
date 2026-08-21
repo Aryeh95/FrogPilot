@@ -1035,6 +1035,7 @@ SETTING_LABELS = {
   "PauseLateralOnOverride": {"name": "Pause Steering on Driver Override"},
   "PauseLateralOnSignal": {"name": "Pause Steering Below (Turn Signal Only)"},
   "PauseLateralSpeed": {"name": "Pause Steering Below", "unit": (" mph", " km/h"), "values": {0: "Off"}},
+  "BrakeLightIndicator": {"name": "Brake Light Indicator"},
   "PedalsOnUI": {"name": "Gas / Brake Pedal Indicators"},
   "PreferredSchedule": {"name": "Automatically Update Maps", "values": {0: "Manually", 1: "Weekly", 2: "Monthly"}},
   "PromptDistractedVolume": {"name": "Distracted Driver Volume", "unit": "%", "values": {0: "Muted", 101: "Auto"}},
@@ -1427,6 +1428,7 @@ frogpilot_default_params: list[tuple[str, str | bytes, int, str]] = [
   ("PauseLateralOnOverride", "0", 1, "0"),
   ("PauseLateralOnSignal", "0", 1, "0"),
   ("PauseLateralSpeed", "0", 1, "0"),
+  ("BrakeLightIndicator", "0", 1, "0"),
   ("PedalsOnUI", "0", 1, "0"),
   ("PreferredSchedule", "2", 0, "0"),
   ("PromptDistractedVolume", "101", 2, "101"),
@@ -1927,6 +1929,7 @@ class FrogPilotVariables:
     toggle.blind_spot_path = has_bsm and self.get_value("BlindSpotPath", condition=custom_ui)
     toggle.compass = self.get_value("Compass", condition=custom_ui)
     toggle.onroad_distance_button = toggle.openpilot_longitudinal and (self.get_value("OnroadDistanceButton", condition=custom_ui) or toggle.debug_mode)
+    toggle.brake_light_indicator = self.get_value("BrakeLightIndicator", condition=custom_ui)
     toggle.pedals_on_ui = self.get_value("PedalsOnUI", condition=toggle.openpilot_longitudinal and custom_ui)
     toggle.dynamic_pedals_on_ui = self.get_value("DynamicPedalsOnUI", condition=toggle.pedals_on_ui)
     toggle.static_pedals_on_ui = self.get_value("StaticPedalsOnUI", condition=toggle.pedals_on_ui)

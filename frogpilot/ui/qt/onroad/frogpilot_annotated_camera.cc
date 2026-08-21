@@ -389,6 +389,10 @@ void FrogPilotAnnotatedCameraWidget::paintFrogPilotWidgets(QPainter &p) {
     paintPedalIcons(p);
   }
 
+  if (!bigMapOpen && frogpilot_toggles.value(QLatin1String("brake_light_indicator")).toBool()) {
+    paintBrakeLightIndicator(p);
+  }
+
   sourcesRect = QRect();
 
   if (speedLimitChanged) {
@@ -761,6 +765,37 @@ void FrogPilotAnnotatedCameraWidget::paintPausedIcon(QPainter &p, const QPoint &
   p.drawPixmap(pausedWidget, icon);
   p.setOpacity(1.0);
   p.drawPixmap(pausedWidget, pausedIcon);
+
+  p.restore();
+}
+
+void FrogPilotAnnotatedCameraWidget::paintBrakeLightIndicator(QPainter &p) {
+  // The car's physical brake lamps come on for the pedal, ACC braking, and strong
+  // regen. HKG doesn't broadcast a dedicated brake-lamp bit openpilot can read, so
+  // mirror the lamp's own rule: pedal braking, or deceleration past the regulatory
+  // brake-light threshold (~1.3 m/s^2, UNECE R13H).
+  const float BRAKE_LIGHT_DECEL = 1.3f;
+  bool braking = brakeLights || frogpilot_scene.standstill || accelerationEgo <= -BRAKE_LIGHT_DECEL;
+
+  if (!braking) {
+    return;
+  }
+
+  p.save();
+
+  int w = 200;
+  int h = 70;
+  int x = (width() - w) / 2;
+  int y = rect().top() + UI_BORDER_SIZE + 20;
+  QRect badge(x, y, w, h);
+
+  p.setPen(Qt::NoPen);
+  p.setBrush(QColor(201, 34, 49, 230));
+  p.drawRoundedRect(badge, 24, 24);
+
+  p.setFont(InterFont(38, QFont::Bold));
+  p.setPen(whiteColor());
+  p.drawText(badge, Qt::AlignCenter, tr("BRAKE"));
 
   p.restore();
 }

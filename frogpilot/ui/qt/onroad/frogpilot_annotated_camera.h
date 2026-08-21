@@ -69,6 +69,7 @@ private:
   void paintCompass(QPainter &p, const QPoint &position);
   void paintCurveSpeedControl(QPainter &p);
   void paintPausedIcon(QPainter &p, const QPoint &position, const QPixmap &icon);
+  void paintBrakeLightIndicator(QPainter &p);
   void paintPedalIcons(QPainter &p);
   void paintPendingSpeedLimit(QPainter &p);
   void paintRadarTracks(QPainter &p);
