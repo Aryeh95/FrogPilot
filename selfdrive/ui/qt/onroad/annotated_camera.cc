@@ -467,16 +467,22 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::RadarState
   }
   fillAlpha = std::clamp(fillAlpha, 0.f, 255.f);
 
-  float sz = std::clamp((25 * 30) / (d_rel / 3 + 30), 15.0f, 30.0f) * 2.35;
+  // lead marker style: 0 = standard, 1 = compact (~2/3 size, lighter glow), 2 = minimal (small, no glow)
+  int marker_style = fs->frogpilot_toggles.value("lead_marker_style").toInt();
+  float style_scale = marker_style == 1 ? 0.65f : marker_style == 2 ? 0.45f : 1.0f;
+
+  float sz = std::clamp((25 * 30) / (d_rel / 3 + 30), 15.0f, 30.0f) * 2.35 * style_scale;
   float x = std::clamp((float)vd.x(), 0.f, width() - sz / 2);
   float y = std::fmin(height() - sz * .6, (float)vd.y());
 
-  float g_xo = sz / 5;
-  float g_yo = sz / 10;
+  if (marker_style != 2) {
+    float g_xo = marker_style == 1 ? sz / 8 : sz / 5;
+    float g_yo = marker_style == 1 ? sz / 16 : sz / 10;
 
-  QPointF glow[] = {{x + (sz * 1.35) + g_xo, y + sz + g_yo}, {x, y - g_yo}, {x - (sz * 1.35) - g_xo, y + sz + g_yo}};
-  painter.setBrush(QColor(218, 202, 37, 255));
-  painter.drawPolygon(glow, std::size(glow));
+    QPointF glow[] = {{x + (sz * 1.35) + g_xo, y + sz + g_yo}, {x, y - g_yo}, {x - (sz * 1.35) - g_xo, y + sz + g_yo}};
+    painter.setBrush(QColor(218, 202, 37, 255));
+    painter.drawPolygon(glow, std::size(glow));
+  }
 
   // chevron
   QPointF chevron[] = {{x + (sz * 1.25), y + sz}, {x, y}, {x - (sz * 1.25), y + sz}};
@@ -490,7 +496,7 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::RadarState
   painter.drawPolygon(chevron, std::size(chevron));
 
   if (fs->frogpilot_toggles.value("lead_metrics").toBool()) {
-    frogpilot_nvg->paintLeadMetrics(painter, adjacent, chevron, frogpilotPlan, lead_data, fs->frogpilot_toggles);
+    frogpilot_nvg->paintLeadMetrics(painter, adjacent, chevron, marker_color, frogpilotPlan, lead_data, fs->frogpilot_toggles);
   }
 
   painter.restore();
@@ -575,19 +581,20 @@ void AnnotatedCameraWidget::paintEvent(QPaintEvent *event) {
       auto lead_two = radar_state.getLeadTwo();
       auto lead_left = frogpilot_radar_state.getLeadLeft();
       auto lead_right = frogpilot_radar_state.getLeadRight();
+      // draw the primary lead first so its label is placed before the adjacent labels
+      // have to route around it
+      frogpilot_nvg->leadLabelRects.clear();
+      if (lead_one.getStatus()) {
+        drawLead(painter, lead_one, frogpilotPlan, s->scene.lead_vertices[0], lead_one.getModelProb() >= frogpilot_toggles.value("lead_detection_probability").toDouble() ? fs->frogpilot_scene.lead_marker_color : whiteColor(), fs);
+      }
+      if (lead_two.getStatus() && (std::abs(lead_one.getDRel() - lead_two.getDRel()) > 3.0)) {
+        drawLead(painter, lead_two, frogpilotPlan, s->scene.lead_vertices[1], fs->frogpilot_scene.lead_marker_color, fs);
+      }
       if (lead_left.getStatus()) {
         drawLead(painter, reinterpret_cast<const cereal::RadarState::LeadData::Reader &>(lead_left), frogpilotPlan, fs->frogpilot_scene.lead_vertices[0], frogpilot_nvg->blueColor(), fs, true);
       }
       if (lead_right.getStatus()) {
         drawLead(painter, reinterpret_cast<const cereal::RadarState::LeadData::Reader &>(lead_right), frogpilotPlan, fs->frogpilot_scene.lead_vertices[1], frogpilot_nvg->purpleColor(), fs, true);
-      }
-      if (lead_one.getStatus()) {
-        drawLead(painter, lead_one, frogpilotPlan, s->scene.lead_vertices[0], lead_one.getModelProb() >= frogpilot_toggles.value("lead_detection_probability").toDouble() ? fs->frogpilot_scene.lead_marker_color : whiteColor(), fs);
-      } else {
-        frogpilot_nvg->leadTextRect = QRect();
-      }
-      if (lead_two.getStatus() && (std::abs(lead_one.getDRel() - lead_two.getDRel()) > 3.0)) {
-        drawLead(painter, lead_two, frogpilotPlan, s->scene.lead_vertices[1], fs->frogpilot_scene.lead_marker_color, fs);
       }
     }
   }

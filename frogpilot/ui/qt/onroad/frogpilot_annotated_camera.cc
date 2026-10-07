@@ -532,12 +532,13 @@ void FrogPilotAnnotatedCameraWidget::paintLateralPaused(QPainter &p, FrogPilotUI
   p.restore();
 }
 
-void FrogPilotAnnotatedCameraWidget::paintLeadMetrics(QPainter &p, bool adjacent, QPointF *chevron, const cereal::FrogPilotPlan::Reader &frogpilotPlan, const cereal::RadarState::LeadData::Reader &lead_data, const QJsonObject &frogpilot_toggles) {
+void FrogPilotAnnotatedCameraWidget::paintLeadMetrics(QPainter &p, bool adjacent, QPointF *chevron, const QColor &marker_color, const cereal::FrogPilotPlan::Reader &frogpilotPlan, const cereal::RadarState::LeadData::Reader &lead_data, const QJsonObject &frogpilot_toggles) {
   float leadDistance = lead_data.getDRel() + (adjacent ? fabs(lead_data.getYRel()) : 0);
   float leadSpeed = std::max(lead_data.getVLead(), 0.0f);
 
-  p.setFont(InterFont(40, QFont::Bold));
-  p.setPen(QPen(whiteColor()));
+  // the primary lead keeps the wide single-line label; adjacent leads get a compact
+  // stacked label so all three fit side by side without colliding
+  p.setFont(InterFont(adjacent ? 32 : 40, QFont::Bold));
 
   bool showDistance = frogpilot_toggles.value("lead_metrics_distance").toBool();
   bool showDesired = frogpilot_toggles.value("lead_metrics_desired").toBool() && !adjacent;
@@ -546,7 +547,7 @@ void FrogPilotAnnotatedCameraWidget::paintLeadMetrics(QPainter &p, bool adjacent
 
   QStringList parts;
   if (showDistance) {
-    QString distancePart = QString("%1 %2").arg(qRound(leadDistance * distanceConversion)).arg(leadDistanceUnit);
+    QString distancePart = QString("%1%2").arg(qRound(leadDistance * distanceConversion)).arg(leadDistanceUnit);
     if (showDesired) {
       distancePart += QString(" (%1)").arg(QString(tr("Desired: %1")).arg(frogpilotPlan.getDesiredFollowDistance() * distanceConversion));
     }
@@ -555,39 +556,85 @@ void FrogPilotAnnotatedCameraWidget::paintLeadMetrics(QPainter &p, bool adjacent
     parts << QString(tr("Desired: %1")).arg(frogpilotPlan.getDesiredFollowDistance() * distanceConversion);
   }
   if (showSpeed) {
-    parts << QString("%1 %2").arg(qRound(leadSpeed * speedConversionMetrics)).arg(leadSpeedUnit);
+    parts << QString("%1%2").arg(qRound(leadSpeed * speedConversionMetrics)).arg(leadSpeedUnit);
   }
   if (showTimeGap) {
     parts << QString("%1 %2").arg(QString::number(leadDistance / std::max(speed / speedConversion, 1.0f), 'f', 2)).arg(tr("s"));
   }
 
   if (parts.isEmpty()) {
-    if (!adjacent) {
-      leadTextRect = QRect();
-    }
     return;
   }
-  QString text = parts.join(" | ");
+  QString text = parts.join(adjacent ? "\n" : " | ");
 
   QFontMetrics metrics(p.font());
-  int textHeight = metrics.height();
-  int textWidth = metrics.horizontalAdvance(text);
-
-  int textX = ((chevron[2].x() + chevron[0].x()) / 2) - textWidth / 2;
-  int textY = chevron[0].y() + textHeight + 5;
-
-  if (!adjacent) {
-    int xMargin = textWidth * 0.25;
-    int yMargin = textHeight * 0.25;
-
-    leadTextRect = QRect(textX, textY - textHeight, textWidth, textHeight).adjusted(-xMargin, -yMargin, xMargin, yMargin);
-    p.drawText(textX, textY, text);
-  } else {
-    QRect adjacentTextRect(textX, textY - textHeight, textWidth, textHeight);
-    if (!adjacentTextRect.intersects(leadTextRect)) {
-      p.drawText(textX, textY, text);
-    }
+  int lineHeight = metrics.lineSpacing();
+  int textHeight = lineHeight * parts.size();
+  int textWidth = 0;
+  for (const QString &part : parts) {
+    textWidth = std::max(textWidth, metrics.horizontalAdvance(part));
   }
+
+  int margin = lineHeight / 4;
+  int chevronCenterX = (chevron[2].x() + chevron[0].x()) / 2;
+  int chevronBottomY = chevron[0].y();
+
+  QRect textRect(chevronCenterX - textWidth / 2, chevronBottomY + 5, textWidth, textHeight);
+  QRect paddedRect = textRect.adjusted(-margin, -margin, margin, margin);
+
+  auto collides = [this](const QRect &rect) {
+    for (const QRect &placed : leadLabelRects) {
+      if (rect.intersects(placed)) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  // the first (primary) label is never moved; everything placed afterwards is pushed
+  // outward away from the labels already on screen, and dropped down a line if it
+  // runs out of room, instead of being hidden
+  bool displaced = false;
+  if (!leadLabelRects.isEmpty() && collides(paddedRect)) {
+    int deviceWidth = p.device()->width();
+    int anchorX = leadLabelRects.first().center().x();
+    bool pushLeft = paddedRect.center().x() < anchorX;
+
+    QRect shifted = paddedRect;
+    for (int attempt = 0; attempt < 3 && collides(shifted); attempt++) {
+      for (const QRect &placed : leadLabelRects) {
+        if (shifted.intersects(placed)) {
+          int dx = pushLeft ? placed.left() - margin - shifted.right() : placed.right() + margin - shifted.left();
+          shifted.translate(dx, 0);
+        }
+      }
+    }
+
+    if (shifted.left() >= 0 && shifted.right() <= deviceWidth && !collides(shifted)) {
+      paddedRect = shifted;
+    } else {
+      QRect dropped = paddedRect;
+      for (int attempt = 0; attempt < 4 && collides(dropped); attempt++) {
+        dropped.translate(0, lineHeight + margin);
+      }
+      paddedRect = dropped;
+    }
+    textRect = paddedRect.adjusted(margin, margin, -margin, -margin);
+    displaced = true;
+  }
+  leadLabelRects.append(paddedRect);
+
+  if (displaced) {
+    // tie the moved label back to its chevron: tint it in the chevron's color and draw a leader line
+    QColor labelColor = marker_color.lighter(160);
+    labelColor.setAlpha(255);
+    p.setPen(QPen(QColor(labelColor.red(), labelColor.green(), labelColor.blue(), 200), 3));
+    p.drawLine(QPointF(chevronCenterX, chevronBottomY), QPointF(textRect.center().x(), textRect.top()));
+    p.setPen(QPen(labelColor));
+  } else {
+    p.setPen(QPen(whiteColor()));
+  }
+  p.drawText(textRect, Qt::AlignHCenter | Qt::AlignTop, text);
 }
 
 void FrogPilotAnnotatedCameraWidget::paintLongitudinalPaused(QPainter &p, FrogPilotUIScene &frogpilot_scene) {

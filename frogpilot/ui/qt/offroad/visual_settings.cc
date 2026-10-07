@@ -88,6 +88,7 @@ FrogPilotVisualsPanel::FrogPilotVisualsPanel(FrogPilotSettingsWindow *parent) : 
     {"Compass", tr("Compass"), tr("<b>Show the current driving direction</b> with a simple on-screen compass."), ""},
     {"OnroadDistanceButton", tr("Driving Personality Button"), tr("<b>Control and view the current driving personality</b> via a driving screen widget."), ""},
     {"PedalsOnUI", tr("Gas / Brake Pedal Indicators"), tr("<b>On-screen gas and brake indicators.</b><br><br><b>Dynamic</b>: Opacity changes according to how much openpilot is accelerating or braking<br><b>Static</b>: Full when active, dim when not"), ""},
+    {"LeadMarkerStyle", tr("Lead Marker Style"), tr("<b>Size of the chevron drawn over tracked vehicles.</b><br><br><b>Standard</b>: Full-size chevron with a glow<br><b>Compact</b>: About two-thirds size with a lighter glow<br><b>Minimal</b>: Small chevron with no glow"), ""},
     {"BrakeLightIndicator", tr("Brake Light Indicator"), tr("<b>Show a \"BRAKE\" indicator whenever the vehicle's brake lights are on</b>, including from adaptive cruise and strong regenerative braking, not just the brake pedal."), ""},
     {"RotatingWheel", tr("Rotating Steering Wheel"), tr("<b>Rotate the driving screen wheel</b> with the physical steering wheel."), ""},
 
@@ -335,6 +336,9 @@ FrogPilotVisualsPanel::FrogPilotVisualsPanel(FrogPilotSettingsWindow *parent) : 
         visualsLayout->setCurrentWidget(qualityOfLifePanel);
       });
       visualToggle = qolToggle;
+    } else if (param == "LeadMarkerStyle") {
+      std::vector<QString> leadMarkerStyles{tr("Standard"), tr("Compact"), tr("Minimal")};
+      visualToggle = new ButtonParamControl(param, title, desc, icon, leadMarkerStyles);
     } else if (param == "CameraView") {
       std::vector<QString> cameraOptions{tr("Auto"), tr("Driver"), tr("Standard"), tr("Wide")};
       ButtonParamControl *cameraSelection = new ButtonParamControl(param, title, desc, icon, cameraOptions);

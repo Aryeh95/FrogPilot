@@ -396,6 +396,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"LeadInfoDistance", PERSISTENT},
     {"LeadInfoSpeed", PERSISTENT},
     {"LeadInfoTimeGap", PERSISTENT},
+    {"LeadMarkerStyle", PERSISTENT},
     {"LKASButtonControl", PERSISTENT},
     {"LockDoors", PERSISTENT},
     {"LockDoorsTimer", PERSISTENT},
