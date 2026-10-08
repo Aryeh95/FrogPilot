@@ -565,14 +565,16 @@ void FrogPilotAnnotatedCameraWidget::paintLeadMetrics(QPainter &p, bool adjacent
   if (parts.isEmpty()) {
     return;
   }
-  QString text = parts.join(adjacent ? "\n" : " | ");
+  // adjacent labels stack one part per line; the primary label is a single joined line
+  QStringList lines = adjacent ? parts : QStringList{parts.join(" | ")};
+  QString text = lines.join("\n");
 
   QFontMetrics metrics(p.font());
   int lineHeight = metrics.lineSpacing();
-  int textHeight = lineHeight * parts.size();
+  int textHeight = lineHeight * lines.size();
   int textWidth = 0;
-  for (const QString &part : parts) {
-    textWidth = std::max(textWidth, metrics.horizontalAdvance(part));
+  for (const QString &line : lines) {
+    textWidth = std::max(textWidth, metrics.horizontalAdvance(line));
   }
 
   int margin = lineHeight / 4;
@@ -634,7 +636,7 @@ void FrogPilotAnnotatedCameraWidget::paintLeadMetrics(QPainter &p, bool adjacent
   } else {
     p.setPen(QPen(whiteColor()));
   }
-  p.drawText(textRect, Qt::AlignHCenter | Qt::AlignTop, text);
+  p.drawText(textRect, Qt::AlignHCenter | Qt::AlignTop | Qt::TextDontClip, text);
 }
 
 void FrogPilotAnnotatedCameraWidget::paintLongitudinalPaused(QPainter &p, FrogPilotUIScene &frogpilot_scene) {
