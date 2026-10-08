@@ -627,15 +627,13 @@ void FrogPilotAnnotatedCameraWidget::paintLeadMetrics(QPainter &p, bool adjacent
   leadLabelRects.append(paddedRect);
 
   if (displaced) {
-    // tie the moved label back to its chevron: tint it in the chevron's color and draw a leader line
-    QColor labelColor = marker_color.lighter(160);
-    labelColor.setAlpha(255);
-    p.setPen(QPen(QColor(labelColor.red(), labelColor.green(), labelColor.blue(), 200), 3));
+    // tie the moved label back to its chevron with a leader line in the chevron's color
+    QColor lineColor = marker_color.lighter(160);
+    p.setPen(QPen(QColor(lineColor.red(), lineColor.green(), lineColor.blue(), 200), 3));
     p.drawLine(QPointF(chevronCenterX, chevronBottomY), QPointF(textRect.center().x(), textRect.top()));
-    p.setPen(QPen(labelColor));
-  } else {
-    p.setPen(QPen(whiteColor()));
   }
+  // labels are always white; tinted text was unreadable against the road
+  p.setPen(QPen(whiteColor()));
   p.drawText(textRect, Qt::AlignHCenter | Qt::AlignTop | Qt::TextDontClip, text);
 }
 
