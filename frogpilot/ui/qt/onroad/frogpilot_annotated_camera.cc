@@ -536,8 +536,7 @@ void FrogPilotAnnotatedCameraWidget::paintLeadMetrics(QPainter &p, bool adjacent
   float leadDistance = lead_data.getDRel() + (adjacent ? fabs(lead_data.getYRel()) : 0);
   float leadSpeed = std::max(lead_data.getVLead(), 0.0f);
 
-  // the primary lead keeps the wide single-line label; adjacent leads get a compact
-  // stacked label so all three fit side by side without colliding
+  // the primary lead gets the larger font; adjacent leads are drawn slightly smaller
   p.setFont(InterFont(adjacent ? 32 : 40, QFont::Bold));
 
   bool showDistance = frogpilot_toggles.value("lead_metrics_distance").toBool();
@@ -565,8 +564,9 @@ void FrogPilotAnnotatedCameraWidget::paintLeadMetrics(QPainter &p, bool adjacent
   if (parts.isEmpty()) {
     return;
   }
-  // adjacent labels stack one part per line; the primary label is a single joined line
-  QStringList lines = adjacent ? parts : QStringList{parts.join(" | ")};
+  // every label stacks one metric per line (distance over speed) so the three
+  // labels stay narrow enough to sit under their own chevrons
+  QStringList lines = parts;
   QString text = lines.join("\n");
 
   QFontMetrics metrics(p.font());
