@@ -55,7 +55,7 @@ def replay_labels():
 
 def shutdown_labels():
   labels = {}
-  for index in range(34):
+  for index in range(52):
     if index == 0:
       labels[index] = "5 mins"
     elif index <= 3:
@@ -84,7 +84,7 @@ ROWS = [
     "order": 0,
     "path": ("System Settings", "DEVICE / SCREEN", "Device Settings"),
     "title": "Device Shutdown Timer",
-    "value": rows.number(0, 33, labels=shutdown_labels()),
+    "value": rows.number(0, 51, labels=shutdown_labels()),
     "widget": "value"
   },
   {
