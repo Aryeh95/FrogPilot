@@ -400,7 +400,12 @@ def hardware_thread(end_event, hw_queue) -> None:
 
     # Check if we need to shut down
     if power_monitor.should_shutdown(onroad_conditions["ignition"], in_car, off_ts, started_seen, frogpilot_toggles):
-      cloudlog.warning(f"shutting device down, offroad since {off_ts}")
+      cloudlog.warning(f"shutting device down, offroad since {off_ts}: {power_monitor.shutdown_reason}")
+      try:
+        with open("/data/media/0/last_shutdown.txt", "a") as f:
+          f.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} {power_monitor.shutdown_reason}\n")
+      except OSError:
+        cloudlog.exception("failed to record shutdown reason")
       params.put_bool("DoShutdown", True)
 
     msg.deviceState.started = started_ts is not None

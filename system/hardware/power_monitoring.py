@@ -30,6 +30,7 @@ class PowerMonitoring:
     self.next_pulsed_measurement_time = None
     self.car_voltage_mV = 12e3                  # Low-passed version of peripheralState voltage
     self.car_voltage_instant_mV = 12e3          # Last value of peripheralState voltage
+    self.shutdown_reason = ""
     self.integration_lock = threading.Lock()
 
     car_battery_capacity_uWh = self.params.get("CarBatteryCapacity")
@@ -118,9 +119,18 @@ class PowerMonitoring:
     offroad_time = (now - offroad_timestamp)
     low_voltage_shutdown = (self.car_voltage_mV < (frogpilot_toggles.low_voltage_shutdown * 1e3) and
                             offroad_time > VOLTAGE_SHUTDOWN_MIN_OFFROAD_TIME_S)
-    should_shutdown |= offroad_time > frogpilot_toggles.device_shutdown_time
+    timer_shutdown = offroad_time > frogpilot_toggles.device_shutdown_time
+    budget_shutdown = self.car_battery_capacity_uWh <= 0
+    should_shutdown |= timer_shutdown
     should_shutdown |= low_voltage_shutdown
-    should_shutdown |= (self.car_battery_capacity_uWh <= 0)
+    should_shutdown |= budget_shutdown
+
+    # remember why, so the decision can be read back after the device powers off
+    reasons = [name for name, hit in (("timer", timer_shutdown), ("low_voltage", low_voltage_shutdown), ("budget", budget_shutdown)) if hit]
+    self.shutdown_reason = (f"{'+'.join(reasons) or 'none'} offroad={offroad_time / 3600:.2f}h "
+                            f"v_lpf={self.car_voltage_mV / 1e3:.2f}V v_inst={self.car_voltage_instant_mV / 1e3:.2f}V "
+                            f"budget={self.car_battery_capacity_uWh / 1e6:.1f}Wh timer_limit={frogpilot_toggles.device_shutdown_time / 3600:.1f}h "
+                            f"v_limit={frogpilot_toggles.low_voltage_shutdown:.2f}V")
     should_shutdown &= not ignition
     should_shutdown &= (not self.params.get_bool("DisablePowerDown"))
     should_shutdown &= in_car
