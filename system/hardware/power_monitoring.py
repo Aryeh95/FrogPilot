@@ -8,9 +8,11 @@ from openpilot.system.statsd import statlog
 
 CAR_VOLTAGE_LOW_PASS_K = 0.011 # LPF gain for 45s tau (dt/tau / (dt/tau + 1))
 
-# While driving, a battery charges completely in about 30-60 minutes
-CAR_BATTERY_CAPACITY_uWh = 30e6
-CAR_CHARGING_RATE_W = 45
+# Energy budget the device may draw from the car battery while parked before it
+# shuts itself down, independent of the voltage cutoff and shutdown timer.
+# Sized so the budget cannot expire before a 30 h shutdown timer at the device's
+# typical offroad draw; the low-voltage cutoff remains the real battery protection.
+CAR_BATTERY_CAPACITY_uWh = 150e6
 
 VBATT_PAUSE_CHARGING = 11.8           # Lower limit on the LPF car battery voltage
 MAX_TIME_OFFROAD_S = 30*3600
@@ -68,13 +70,12 @@ class PowerMonitoring:
           return
 
       if ignition:
-        # If there is ignition, we integrate the charging rate of the car
+        # With ignition on the car's DC-DC converter holds the 12V bus, so the
+        # budget is restored in full rather than trickled back at a guessed rate
+        # that short trips never finish refilling
         with self.integration_lock:
           self.power_used_uWh = 0
-          integration_time_h = (now - self.last_measurement_time) / 3600
-          if integration_time_h < 0:
-            raise ValueError(f"Negative integration time: {integration_time_h}h")
-          self.car_battery_capacity_uWh += (CAR_CHARGING_RATE_W * 1e6 * integration_time_h)
+          self.car_battery_capacity_uWh = CAR_BATTERY_CAPACITY_uWh
           self.last_measurement_time = now
       else:
         # Get current power draw somehow
