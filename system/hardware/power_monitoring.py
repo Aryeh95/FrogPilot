@@ -10,9 +10,10 @@ CAR_VOLTAGE_LOW_PASS_K = 0.011 # LPF gain for 45s tau (dt/tau / (dt/tau + 1))
 
 # Energy budget the device may draw from the car battery while parked before it
 # shuts itself down, independent of the voltage cutoff and shutdown timer.
-# Sized so the budget cannot expire before a 30 h shutdown timer at the device's
-# typical offroad draw; the low-voltage cutoff remains the real battery protection.
-CAR_BATTERY_CAPACITY_uWh = 150e6
+# Sized so the budget cannot expire before the 48 h maximum shutdown timer at the
+# device's typical offroad draw (~4-5 W); the low-voltage cutoff remains the real
+# battery protection.
+CAR_BATTERY_CAPACITY_uWh = 250e6
 
 VBATT_PAUSE_CHARGING = 11.8           # Lower limit on the LPF car battery voltage
 MAX_TIME_OFFROAD_S = 30*3600

@@ -63,10 +63,10 @@ FrogPilotDevicePanel::FrogPilotDevicePanel(FrogPilotSettingsWindow *parent) : Fr
       deviceToggle = deviceManagementToggle;
     } else if (param == "DeviceShutdown") {
       std::map<float, QString> shutdownLabels;
-      for (int i = 0; i <= 33; ++i) {
+      for (int i = 0; i <= 51; ++i) {
         shutdownLabels[i] = i == 0 ? tr("5 mins") : i <= 3 ? QString::number(i * 15) + tr(" mins") : QString::number(i - 3) + (i == 4 ? tr(" hour") : tr(" hours"));
       }
-      deviceToggle = new FrogPilotParamValueControl(param, title, desc, icon, 0, 33, QString(), shutdownLabels, 1, true);
+      deviceToggle = new FrogPilotParamValueControl(param, title, desc, icon, 0, 51, QString(), shutdownLabels, 1, true);
     } else if (param == "NoUploads") {
       std::vector<QString> uploadsToggles{"DisableOnroadUploads"};
       std::vector<QString> uploadsToggleNames{tr("Disable Onroad Only")};
