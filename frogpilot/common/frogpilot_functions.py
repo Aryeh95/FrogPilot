@@ -314,6 +314,13 @@ def register_device(build_metadata):
   threading.Thread(target=register_thread, daemon=True).start()
 
 
+def soft_reboot():
+  # restart the openpilot service without rebooting the device
+  Path("/tmp/booted").touch()
+
+  subprocess.check_call(["sudo", "systemctl", "restart", "--no-block", "comma"])
+
+
 def uninstall_frogpilot():
   boot_logo_location = Path("/usr/comma/bg.jpg")
   stock_boot_logo = Path(__file__).parents[1] / "assets/other_images/stock_bg.jpg"
