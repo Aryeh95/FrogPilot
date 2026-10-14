@@ -119,13 +119,16 @@ class Track:
         self.leadRight = False
       return False
 
-    far_left_lane = interp(self.dRel, model_data.laneLines[0].x, model_data.laneLines[0].y)
-    left_lane = interp(self.dRel, model_data.laneLines[1].x, model_data.laneLines[1].y)
-    right_lane = interp(self.dRel, model_data.laneLines[2].x, model_data.laneLines[2].y)
-    far_right_lane = interp(self.dRel, model_data.laneLines[3].x, model_data.laneLines[3].y)
+    # radar distances are measured from the radar, lane lines from the model frame ~1.5m behind it
+    model_distance = self.dRel + RADAR_TO_CAMERA
 
-    lead_left = far_left_lane < -self.yRel < left_lane and self.dRel < model_data.position.x[-1]
-    lead_right = right_lane < -self.yRel < far_right_lane and self.dRel < model_data.position.x[-1]
+    far_left_lane = interp(model_distance, model_data.laneLines[0].x, model_data.laneLines[0].y)
+    left_lane = interp(model_distance, model_data.laneLines[1].x, model_data.laneLines[1].y)
+    right_lane = interp(model_distance, model_data.laneLines[2].x, model_data.laneLines[2].y)
+    far_right_lane = interp(model_distance, model_data.laneLines[3].x, model_data.laneLines[3].y)
+
+    lead_left = far_left_lane < -self.yRel < left_lane and model_distance < model_data.position.x[-1]
+    lead_right = right_lane < -self.yRel < far_right_lane and model_distance < model_data.position.x[-1]
 
     if should_update_cached_leads:
       self.leadLeft = lead_left
@@ -137,10 +140,12 @@ class Track:
       return lead_right
 
   def potential_far_lead(self, lead_msg: capnp._DynamicStructReader, model_data: capnp._DynamicStructReader):
-    left_lane = interp(self.dRel, model_data.laneLines[1].x, model_data.laneLines[1].y)
-    right_lane = interp(self.dRel, model_data.laneLines[2].x, model_data.laneLines[2].y)
+    model_distance = self.dRel + RADAR_TO_CAMERA
 
-    if left_lane < -self.yRel < right_lane and self.dRel < model_data.position.x[-1] and self.vLeadK > 1:
+    left_lane = interp(model_distance, model_data.laneLines[1].x, model_data.laneLines[1].y)
+    right_lane = interp(model_distance, model_data.laneLines[2].x, model_data.laneLines[2].y)
+
+    if left_lane < -self.yRel < right_lane and model_distance < model_data.position.x[-1] and self.vLeadK > 1:
       self.radarfulFilter.update(1)
       return True
     else:
