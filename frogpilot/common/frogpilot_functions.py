@@ -327,6 +327,13 @@ def sync_flag_file(flag_path, enabled):
 
   return True
 
+def soft_reboot():
+  # restart the openpilot service without rebooting the device
+  Path("/tmp/booted").touch()
+
+  subprocess.check_call(["sudo", "systemctl", "restart", "--no-block", "comma"])
+
+
 def uninstall_frogpilot():
   update_boot_logo(frogpilot_paths.STOCK_BOOT_LOGO_PATH)
 
