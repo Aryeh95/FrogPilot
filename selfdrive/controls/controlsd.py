@@ -417,7 +417,11 @@ class Controls:
     # Check for FCW
     stock_long_is_braking = self.enabled and not self.CP.openpilotLongitudinalControl and CS.aEgo < -1.25
     model_fcw = self.sm['modelV2'].meta.hardBrakePredicted and not CS.brakePressed and not stock_long_is_braking
-    planner_fcw = self.sm['longitudinalPlan'].fcw and self.enabled
+    # the planner's FCW means openpilot's own longitudinal plan can't avoid the lead. with stock
+    # longitudinal that plan is never executed (the car's ACC brakes, typically later and with a
+    # shorter gap than openpilot plans for), so it false-alarms in traffic. the model FCW below and
+    # the car's own forward collision warning/AEB still cover stock longitudinal
+    planner_fcw = self.sm['longitudinalPlan'].fcw and self.enabled and self.CP.openpilotLongitudinalControl
     if (planner_fcw or model_fcw) and not (self.CP.notCar and self.joystick_mode):
       self.events.add(EventName.fcw)
 
