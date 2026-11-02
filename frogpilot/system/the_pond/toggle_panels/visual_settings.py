@@ -175,15 +175,17 @@ ROWS = [
     "widget": "toggle"
   },
   {
-    "description": ("<b>Print how far away the car ahead is and how fast it is going, underneath its marker.</b><br><br>On cars where openpilot " +
-                    "handles the gas and brake, it also shows the gap openpilot is aiming for, so you can see it closing in on the distance you " +
-                    "asked for."),
+    "description": ("<b>Print stats for each car openpilot is tracking underneath its marker.</b><br><br>\"Distance\" is how far ahead it is, " +
+                    "\"Desired Gap\" is the gap openpilot is aiming for (only when openpilot handles the gas and brake), \"Speed\" is how fast it's " +
+                    "going, and \"Time Gap\" is how many seconds behind it you are. Cars in the next lanes show distance and speed only."),
     "key": "LeadInfo",
     "order": 3,
     "path": ("Theme and Appearance", "DRIVING VIEW", "Developer UI", "Developer Metrics"),
+    "sub_toggles": ({"key": "LeadInfoDistance", "label": "Distance"}, {"key": "LeadInfoDesired", "label": "Desired Gap"},
+                    {"key": "LeadInfoSpeed", "label": "Speed"}, {"key": "LeadInfoTimeGap", "label": "Time Gap"}),
     "title": "Lead Info",
     "visible": lambda context: context.level_reason("LeadInfo") or lead_marker_reason(context),
-    "widget": "toggle"
+    "widget": "button_toggle"
   },
   {
     "description": ("<b>Show the device temperature as a number in the sidebar instead of a word like \"GOOD\".</b><br><br>Useful for spotting the " +
@@ -617,5 +619,24 @@ ROWS = [
     "path": ("Theme and Appearance", "DRIVING VIEW", "Quality of Life"),
     "title": "Stopped Timer",
     "widget": "toggle"
+  },
+  {
+    "description": ("<b>Show a \"BRAKE\" badge on the driving screen whenever the car's brake lights are on.</b><br><br>That includes braking from " +
+                    "adaptive cruise and strong regenerative braking, not just the brake pedal. Works with stock or openpilot gas and brake control."),
+    "key": "BrakeLightIndicator",
+    "order": 7,
+    "path": ("Theme and Appearance", "DRIVING VIEW", "Driving Screen Widgets"),
+    "title": "Brake Light Indicator",
+    "widget": "toggle"
+  },
+  {
+    "description": ("<b>How big the marker over each tracked car is.</b><br><br>\"Standard\" is the full-size chevron with a glow, \"Compact\" is " +
+                    "about two-thirds the size with a lighter glow, and \"Minimal\" is a small chevron with no glow."),
+    "key": "LeadMarkerStyle",
+    "options": ({"label": "Standard", "value": 0}, {"label": "Compact", "value": 1}, {"label": "Minimal", "value": 2}),
+    "order": 8,
+    "path": ("Theme and Appearance", "DRIVING VIEW", "Driving Screen Widgets"),
+    "title": "Lead Marker Style",
+    "widget": "select"
   }
 ]

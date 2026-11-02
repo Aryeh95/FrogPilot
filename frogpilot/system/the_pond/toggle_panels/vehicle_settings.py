@@ -508,5 +508,16 @@ ROWS = [
     "path": ("Vehicle Settings", "VEHICLE SETTINGS", "Vehicle Info"),
     "title": "Stop-and-Go Support",
     "widget": "text"
+  },
+  {
+    "description": ("<b>Feed the car's own radar tracks into lead detection.</b><br><br>Lead distance and speed come from radar measurements " +
+                    "instead of camera estimates, which makes the lead markers and openpilot's gas and brake control more accurate. Takes effect after a reboot."),
+    "key": "HyundaiRadarTracksFusion",
+    "on_change": lambda context, old_value, new_value: context.started,
+    "order": 2,
+    "path": ("Vehicle Settings", "VEHICLE SETTINGS", "Hyundai/Kia/Genesis Settings"),
+    "title": "Use Radar Tracks for Lead Detection",
+    "visible": lambda context: car_row_reason(context, "HyundaiRadarTracksFusion", context.is_hkg and context.has_radar),
+    "widget": "toggle"
   }
 ]

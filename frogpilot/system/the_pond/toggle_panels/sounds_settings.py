@@ -230,5 +230,15 @@ ROWS = [
     "title": "Speed Limit Changed Alert",
     "visible": speed_limit_changed_alert_visible,
     "widget": "toggle"
+  },
+  {
+    "description": ("<b>Remind you to nudge the steering wheel before the car's own hands-on-wheel monitor slows you down.</b><br><br>Genesis, " +
+                    "Hyundai, and Kia cars warn and limit speed after about a minute without real steering input from you. This alert comes first, so " +
+                    "a nudge resets the car's timer before that happens."),
+    "key": "HandsOnWheelReminder",
+    "order": 5,
+    "path": ("Alerts and Sounds", "MANAGE", "Extra Alerts"),
+    "title": "Hands on Wheel Reminder",
+    "widget": "toggle"
   }
 ]

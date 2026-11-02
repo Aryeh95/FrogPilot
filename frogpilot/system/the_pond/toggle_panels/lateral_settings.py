@@ -391,5 +391,14 @@ ROWS = [
     "value": rows.number(0, 99, unit=" mph", labels={0: "Off"}, fast=True,
                          metric=rows.number(0, 150, unit=" km/h", labels={0: "Off"}, fast=True)),
     "widget": "value_buttons"
+  },
+  {
+    "description": ("<b>openpilot stops steering while you turn the wheel yourself, so it doesn't fight your override.</b><br><br>Steering resumes " +
+                    "as soon as you let go of the wheel."),
+    "key": "PauseLateralOnOverride",
+    "order": 1,
+    "path": ("Driving Controls", "STEERING", "Quality of Life"),
+    "title": "Pause Steering on Driver Override",
+    "widget": "toggle"
   }
 ]
