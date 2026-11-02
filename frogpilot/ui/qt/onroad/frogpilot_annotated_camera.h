@@ -15,7 +15,7 @@ public:
   void paintAdjacentPaths(QPainter &p);
   void paintBlindSpotPath(QPainter &p);
   void paintFrogPilotWidgets(QPainter &p);
-  void paintLeadMetrics(QPainter &p, bool adjacent, QPointF *chevron, float leadDistance, float vLead);
+  void paintLeadMetrics(QPainter &p, bool adjacent, QPointF *chevron, float leadDistance, float vLead, const QColor &markerColor);
   void paintPathEdges(QPainter &p);
   void paintRainbowPath(QLinearGradient &bg, float lin_grad_point);
   void paintWorldWidgets(QPainter &p);

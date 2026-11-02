@@ -631,7 +631,7 @@ void FrogPilotAnnotatedCameraWidget::paintCurveSpeedControl(QPainter &p) {
   p.restore();
 }
 
-void FrogPilotAnnotatedCameraWidget::paintLeadMetrics(QPainter &p, bool adjacent, QPointF *chevron, float leadDistance, float vLead) {
+void FrogPilotAnnotatedCameraWidget::paintLeadMetrics(QPainter &p, bool adjacent, QPointF *chevron, float leadDistance, float vLead, const QColor &markerColor) {
   if (!frogpilot_toggles.value(QLatin1String("lead_info")).toBool()) {
     return;
   }
@@ -641,22 +641,29 @@ void FrogPilotAnnotatedCameraWidget::paintLeadMetrics(QPainter &p, bool adjacent
   QString distanceString = QString::number(qRound(leadDistance * distanceConversion));
   QString speedString = QString::number(qRound(leadSpeed * speedConversionMetrics));
 
+  bool showDistance = frogpilot_toggles.value(QLatin1String("lead_info_distance")).toBool();
+  bool showDesired = !adjacent && frogpilot_toggles.value(QLatin1String("lead_info_desired")).toBool() && frogpilot_toggles.value(QLatin1String("openpilot_longitudinal")).toBool();
+  bool showSpeed = frogpilot_toggles.value(QLatin1String("lead_info_speed")).toBool();
+  bool showTimeGap = !adjacent && frogpilot_toggles.value(QLatin1String("lead_info_time_gap")).toBool() && vEgo >= 1.0f;
+
   QStringList textLines;
   textLines.reserve(3);
-  if (adjacent) {
-    textLines.append(distanceString + leadDistanceUnit);
+  QString desiredString = showDesired ? tr("Desired: %1").arg(std::max(0, qRound(desiredFollowDistance * distanceConversion))) : QString();
+  if (showDistance) {
+    textLines.append(showDesired ? QString("%1%2 (%3)").arg(distanceString, leadDistanceUnit, desiredString) : distanceString + leadDistanceUnit);
+  } else if (showDesired) {
+    textLines.append(desiredString);
+  }
+  if (showSpeed) {
     textLines.append(speedString + leadSpeedUnit);
-  } else {
-    if (frogpilot_toggles.value(QLatin1String("openpilot_longitudinal")).toBool()) {
-      int desiredDistance = std::max(0, qRound(desiredFollowDistance * distanceConversion));
-      textLines.append(QString("%1%2 (%3)").arg(distanceString, leadDistanceUnit, tr("Desired: %1").arg(desiredDistance)));
-    } else {
-      textLines.append(distanceString + leadDistanceUnit);
-    }
-    textLines.append(speedString + leadSpeedUnit);
-
+  }
+  if (showTimeGap) {
     float timeGap = leadDistance / std::max(vEgo, 1.0f);
     textLines.append(tr("%1 seconds").arg(QString::number(timeGap, 'f', 2)));
+  }
+
+  if (textLines.isEmpty()) {
+    return;
   }
 
   p.save();
@@ -672,8 +679,11 @@ void FrogPilotAnnotatedCameraWidget::paintLeadMetrics(QPainter &p, bool adjacent
     maxTextWidth = std::max(maxTextWidth, metrics.horizontalAdvance(line));
   }
 
-  int centerX = std::clamp<int>((chevron[2].x() + chevron[0].x()) / 2, maxTextWidth / 2, width() - maxTextWidth / 2);
-  int startY = std::min<int>(chevron[0].y() + lineHeight + 5, height() - (textLines.size() - 1) * lineHeight - metrics.descent());
+  int chevronCenterX = (chevron[2].x() + chevron[0].x()) / 2;
+  int chevronBottomY = chevron[0].y();
+
+  int centerX = std::clamp<int>(chevronCenterX, maxTextWidth / 2, width() - maxTextWidth / 2);
+  int startY = std::min<int>(chevronBottomY + lineHeight + 5, height() - (textLines.size() - 1) * lineHeight - metrics.descent());
 
   int xMargin = maxTextWidth * 0.1;
   int yMargin = lineHeight * 0.1;
@@ -681,21 +691,55 @@ void FrogPilotAnnotatedCameraWidget::paintLeadMetrics(QPainter &p, bool adjacent
   QRect textRect(centerX - maxTextWidth / 2, startY - lineHeight, maxTextWidth, textLines.size() * lineHeight);
   textRect.adjust(-xMargin, -yMargin, xMargin, yMargin);
 
-  if ((adjacent && textRect.intersects(adjacentLeadTextRect)) || std::any_of(leadTextRects.cbegin(), leadTextRects.cend(), [&textRect](const QRect &rect) {
-    return textRect.intersects(rect);
-  })) {
-    p.restore();
-    return;
+  auto collides = [this](const QRect &rect) {
+    return std::any_of(leadTextRects.cbegin(), leadTextRects.cend(), [&rect](const QRect &placed) {
+      return rect.intersects(placed);
+    });
+  };
+
+  // the first label drawn is never moved; any later label that would overlap is pushed
+  // sideways away from the first one, or dropped down a line if there's no room, and tied
+  // back to its chevron with a leader line, so all three leads keep their labels
+  bool displaced = false;
+  if (!leadTextRects.isEmpty() && collides(textRect)) {
+    int anchorX = leadTextRects.first().center().x();
+    bool pushLeft = textRect.center().x() < anchorX;
+
+    QRect shifted = textRect;
+    for (int attempt = 0; attempt < 3 && collides(shifted); ++attempt) {
+      for (const QRect &placed : leadTextRects) {
+        if (shifted.intersects(placed)) {
+          shifted.translate(pushLeft ? placed.left() - xMargin - shifted.right() : placed.right() + xMargin - shifted.left(), 0);
+        }
+      }
+    }
+
+    QRect moved;
+    if (shifted.left() >= 0 && shifted.right() <= width() && !collides(shifted)) {
+      moved = shifted;
+    } else {
+      moved = textRect;
+      for (int attempt = 0; attempt < 4 && collides(moved); ++attempt) {
+        moved.translate(0, lineHeight + yMargin);
+      }
+    }
+
+    centerX += moved.center().x() - textRect.center().x();
+    startY += moved.top() - textRect.top();
+    textRect = moved;
+    displaced = true;
   }
 
+  leadTextRects.append(textRect);
   if (adjacent) {
     adjacentLeadTextRect = textRect;
-  } else {
-    leadTextRects.append(textRect);
+  }
 
-    if (vEgo < 1.0f) {
-      textLines[2].clear();
-    }
+  if (displaced) {
+    QColor lineColor = markerColor.lighter(160);
+    p.setPen(QPen(QColor(lineColor.red(), lineColor.green(), lineColor.blue(), 200), 3));
+    p.drawLine(QPointF(chevronCenterX, chevronBottomY), QPointF(textRect.center().x(), textRect.top()));
+    p.setPen(whiteColor());
   }
 
   for (int i = 0; i < textLines.size(); ++i) {

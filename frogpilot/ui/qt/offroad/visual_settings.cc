@@ -95,7 +95,7 @@ FrogPilotVisualsPanel::FrogPilotVisualsPanel(FrogPilotSettingsWindow *parent, bo
     {"AdjacentPathMetrics", tr("Adjacent Lane Metrics"), tr("<b>Print how wide the lanes either side of you are, right on their paths.</b><br><br>It draws the adjacent lane paths itself, so there is something to print onto, even with \"Adjacent Lanes\" switched off."), ""},
     {"BorderMetrics", tr("Border Metrics"), tr("<b>Color the edge of the driving screen to show what openpilot is reacting to.</b><br><br>You can switch on the blind spot, steering effort, and turn signal borders separately. The blind spot one only appears on cars with factory blind spot monitoring, and the steering effort one only appears on cars where openpilot sends a steering effort rather than a steering angle."), ""},
     {"FPSCounter", tr("FPS Display"), tr("<b>Show how many frames a second the driving screen is drawing, along the bottom.</b><br><br>It also tracks the lowest and highest it has seen."), ""},
-    {"LeadInfo", tr("Lead Info"), tr("<b>Print how far away the car ahead is and how fast it is going, underneath its marker.</b><br><br>On cars where openpilot handles the gas and brake, it also shows the gap openpilot is aiming for, so you can see it closing in on the distance you asked for."), ""},
+    {"LeadInfo", tr("Lead Info"), tr("<b>Print stats for each car openpilot is tracking underneath its marker.</b><br><br>\"Distance\" is how far ahead it is, \"Desired Gap\" is the gap openpilot is aiming for (only when openpilot handles the gas and brake), \"Speed\" is how fast it's going, and \"Time Gap\" is how many seconds behind it you are. Cars in the next lanes show distance and speed only."), ""},
     {"NumericalTemp", tr("Numerical Temperature Gauge"), tr("<b>Show the device temperature as a number in the sidebar instead of a word like \"GOOD\".</b><br><br>Useful for spotting the device getting hot before it slows itself down."), ""},
     {"SidebarMetrics", tr("Sidebar Metrics"), tr("<b>Fill the sidebar with how hard the device is working, how much storage is left, and its IP address.</b><br><br>They take the place of the vehicle, connection, and signal indicators normally shown there.<br><br>CPU and GPU cannot both be on, and RAM, SSD Left, and SSD Used are one at a time, so picking one clears the other."), ""},
     {"UseSI", tr("Use International System of Units"), tr("<b>Show the developer readouts in plain scientific units instead of the friendlier ones.</b><br><br>This only affects the developer numbers, not the speed or distances you drive by."), ""},
@@ -119,6 +119,7 @@ FrogPilotVisualsPanel::FrogPilotVisualsPanel(FrogPilotSettingsWindow *parent, bo
     {"Compass", tr("Compass"), tr("<b>Add a compass to the driving screen showing which way you are heading.</b><br><br>Without a GPS fix it freezes on the last heading it knew rather than disappearing, so treat a compass that never moves as no reading at all."), ""},
     {"OnroadDistanceButton", tr("Driving Personality Button"), tr("<b>Add a button to the driving screen that switches your following distance between Aggressive, Standard, and Relaxed without going into the menus.</b><br><br>It works as a second \"Distance\" button, so holding it, or changing what that button does under \"WHEEL BUTTONS\", gives you those actions instead. This changes how the car actually drives, not just what you see. It also shows which one is active."), ""},
     {"BrakeLightIndicator", tr("Brake Light Indicator"), tr("<b>Show a \"BRAKE\" badge on the driving screen whenever the car's brake lights are on.</b><br><br>That includes braking from adaptive cruise and strong regenerative braking, not just the brake pedal. Works with stock or openpilot gas and brake control."), ""},
+    {"LeadMarkerStyle", tr("Lead Marker Style"), tr("<b>How big the marker over each tracked car is.</b><br><br>\"Standard\" is the full-size chevron with a glow, \"Compact\" is about two-thirds the size with a lighter glow, and \"Minimal\" is a small chevron with no glow."), ""},
     {"PedalsOnUI", tr("Gas / Brake Pedal Indicators"), tr("<b>Show gas and brake indicators on the driving screen that light up as the car speeds up or slows down, whether openpilot or you are driving.</b><br><br>\"Dynamic\" fades them in and out with how hard the car is accelerating or braking. \"Static\" shows them fully lit when active and dim when not."), ""},
     {"RotatingWheel", tr("Rotating Steering Wheel"), tr("<b>Turn the steering wheel picture on screen in time with your real steering wheel.</b>"), ""},
 
@@ -178,6 +179,13 @@ FrogPilotVisualsPanel::FrogPilotVisualsPanel(FrogPilotSettingsWindow *parent, bo
       std::vector<QString> borderToggleNames{tr("Blind Spot"), tr("Steering Torque"), tr("Turn Signal")};
       borderMetricsButton = new FrogPilotButtonToggleControl(param, title, desc, icon, borderToggles, borderToggleNames);
       visualToggle = borderMetricsButton;
+    } else if (param == "LeadInfo") {
+      std::vector<QString> leadInfoToggles{"LeadInfoDistance", "LeadInfoDesired", "LeadInfoSpeed", "LeadInfoTimeGap"};
+      std::vector<QString> leadInfoToggleNames{tr("Distance"), tr("Desired Gap"), tr("Speed"), tr("Time Gap")};
+      visualToggle = new FrogPilotButtonToggleControl(param, title, desc, icon, leadInfoToggles, leadInfoToggleNames);
+    } else if (param == "LeadMarkerStyle") {
+      std::vector<QString> leadMarkerStyles{tr("Standard"), tr("Compact"), tr("Minimal")};
+      visualToggle = new ButtonParamControl(param, title, desc, icon, leadMarkerStyles);
     } else if (param == "NumericalTemp") {
       std::vector<QString> temperatureToggles{"Fahrenheit"};
       std::vector<QString> temperatureToggleNames{tr("Fahrenheit")};

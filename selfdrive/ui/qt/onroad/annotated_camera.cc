@@ -441,7 +441,7 @@ void AnnotatedCameraWidget::drawDriverState(QPainter &painter, const UIState *s,
   painter.restore();
 }
 
-void AnnotatedCameraWidget::drawLead(QPainter &painter, float d_rel, float v_rel, float v_lead, const QPointF &vd, const QColor &marker_color, bool adjacent) {
+void AnnotatedCameraWidget::drawLead(QPainter &painter, float d_rel, float v_rel, float v_lead, const QPointF &vd, const QColor &marker_color, bool adjacent, bool radar) {
   painter.save();
 
   const float speedBuff = 10.;
@@ -454,23 +454,35 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, float d_rel, float v_rel
   }
   fillAlpha = std::clamp(fillAlpha, 0.f, 255.f);
 
-  float sz = std::clamp((25 * 30) / (d_rel / 3 + 30), 15.0f, 30.0f) * 2.35;
+  // lead marker style: 0 = standard, 1 = compact (~2/3 size, lighter glow), 2 = minimal (small, no glow)
+  int marker_style = frogpilotUIState()->frogpilot_toggles.value(QLatin1String("lead_marker_style")).toInt();
+  float style_scale = marker_style == 1 ? 0.65f : marker_style == 2 ? 0.45f : 1.0f;
+
+  float sz = std::clamp((25 * 30) / (d_rel / 3 + 30), 15.0f, 30.0f) * 2.35 * style_scale;
   float x = std::clamp((float)vd.x(), 0.f, width() - sz / 2);
   float y = std::fmin(height() - sz * .6, (float)vd.y());
 
-  float g_xo = sz / 5;
-  float g_yo = sz / 10;
+  if (marker_style != 2) {
+    float g_xo = marker_style == 1 ? sz / 8 : sz / 5;
+    float g_yo = marker_style == 1 ? sz / 16 : sz / 10;
 
-  QPointF glow[] = {{x + (sz * 1.35) + g_xo, y + sz + g_yo}, {x, y - g_yo}, {x - (sz * 1.35) - g_xo, y + sz + g_yo}};
-  painter.setBrush(QColor(218, 202, 37, 255));
-  painter.drawPolygon(glow, std::size(glow));
+    QPointF glow[] = {{x + (sz * 1.35) + g_xo, y + sz + g_yo}, {x, y - g_yo}, {x - (sz * 1.35) - g_xo, y + sz + g_yo}};
+    painter.setBrush(QColor(218, 202, 37, 255));
+    painter.drawPolygon(glow, std::size(glow));
+  }
 
   // chevron
   QPointF chevron[] = {{x + (sz * 1.25), y + sz}, {x, y}, {x - (sz * 1.25), y + sz}};
-  painter.setBrush(QColor(marker_color.red(), marker_color.green(), marker_color.blue(), fillAlpha));
+  if (!adjacent) {
+    // lead source indicator: green = radar-measured track, orange = vision-estimated fallback
+    QColor source_color = radar ? QColor(46, 204, 113) : QColor(255, 165, 0);
+    painter.setBrush(QColor(source_color.red(), source_color.green(), source_color.blue(), fillAlpha));
+  } else {
+    painter.setBrush(QColor(marker_color.red(), marker_color.green(), marker_color.blue(), fillAlpha));
+  }
   painter.drawPolygon(chevron, std::size(chevron));
 
-  frogpilot_nvg->paintLeadMetrics(painter, adjacent, chevron, d_rel, v_lead);
+  frogpilot_nvg->paintLeadMetrics(painter, adjacent, chevron, d_rel, v_lead, marker_color);
 
   painter.restore();
 }
@@ -553,10 +565,10 @@ void AnnotatedCameraWidget::paintGL() {
       auto lead_two = radar_state.getLeadTwo();
       frogpilot_nvg->leadTextRects.clear();
       if (lead_one.getStatus()) {
-        drawLead(painter, lead_one.getDRel(), lead_one.getVRel(), lead_one.getVLead(), s->scene.lead_vertices[0], lead_one.getModelProb() >= frogpilot_toggles.value("lead_detection_probability").toDouble() ? QColor(frogpilot_toggles.value(QLatin1String("lead_marker_color")).toString()) : whiteColor());
+        drawLead(painter, lead_one.getDRel(), lead_one.getVRel(), lead_one.getVLead(), s->scene.lead_vertices[0], lead_one.getModelProb() >= frogpilot_toggles.value("lead_detection_probability").toDouble() ? QColor(frogpilot_toggles.value(QLatin1String("lead_marker_color")).toString()) : whiteColor(), false, lead_one.getRadar());
       }
       if (lead_two.getStatus() && (std::abs(lead_one.getDRel() - lead_two.getDRel()) > 3.0)) {
-        drawLead(painter, lead_two.getDRel(), lead_two.getVRel(), lead_two.getVLead(), s->scene.lead_vertices[1], QColor(frogpilot_toggles.value(QLatin1String("lead_marker_color")).toString()));
+        drawLead(painter, lead_two.getDRel(), lead_two.getVRel(), lead_two.getVLead(), s->scene.lead_vertices[1], QColor(frogpilot_toggles.value(QLatin1String("lead_marker_color")).toString()), false, lead_two.getRadar());
       }
 
       // FrogPilot variables

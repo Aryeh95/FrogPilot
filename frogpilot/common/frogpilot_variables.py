@@ -979,6 +979,11 @@ SETTING_LABELS = {
   "LeadDepartingAlert": {"name": "Lead Departing Alert"},
   "LeadDetectionThreshold": {"name": "Lead Detection Sensitivity", "unit": "%"},
   "LeadInfo": {"name": "Lead Info"},
+  "LeadInfoDesired": {"name": "Lead Info (Desired Gap)"},
+  "LeadInfoDistance": {"name": "Lead Info (Distance)"},
+  "LeadInfoSpeed": {"name": "Lead Info (Speed)"},
+  "LeadInfoTimeGap": {"name": "Lead Info (Time Gap)"},
+  "LeadMarkerStyle": {"name": "Lead Marker Style", "values": {0: "Standard", 1: "Compact", 2: "Minimal"}},
   "LKASButtonControl": {"name": "LKAS Button", "values": BUTTON_FUNCTION_LABELS},
   "LockDoors": {"name": "Toyota/Lexus Settings: Automatically Lock/Unlock Doors (Lock)"},
   "LockDoorsTimer": {"name": "Toyota/Lexus Settings: Lock Doors On Ignition Off After", "unit": " seconds", "values": {0: "Never"}},
@@ -1393,6 +1398,11 @@ frogpilot_default_params: list[tuple[str, str | bytes, int, str]] = [
   ("LeadDepartingAlert", "0", 0, "0"),
   ("LeadDetectionThreshold", "35", 3, "50"),
   ("LeadInfo", "1", 3, "0"),
+  ("LeadInfoDesired", "1", 3, "0"),
+  ("LeadInfoDistance", "1", 3, "0"),
+  ("LeadInfoSpeed", "1", 3, "0"),
+  ("LeadInfoTimeGap", "1", 3, "0"),
+  ("LeadMarkerStyle", "0", 1, "0"),
   ("LiveDelay", "", 0, ""),
   ("LKASButtonControl", "5", 2, "0"),
   ("LockDoors", "1", 0, "0"),
@@ -1946,6 +1956,7 @@ class FrogPilotVariables:
     toggle.adjacent_paths = self.get_value("AdjacentPath", condition=custom_ui)
     toggle.blind_spot_path = has_bsm and self.get_value("BlindSpotPath", condition=custom_ui)
     toggle.compass = self.get_value("Compass", condition=custom_ui)
+    toggle.lead_marker_style = self.get_value("LeadMarkerStyle", cast=int, condition=custom_ui)
     toggle.onroad_distance_button = toggle.openpilot_longitudinal and (self.get_value("OnroadDistanceButton", condition=custom_ui) or toggle.debug_mode)
     toggle.brake_light_indicator = self.get_value("BrakeLightIndicator", condition=custom_ui)
     toggle.pedals_on_ui = self.get_value("PedalsOnUI", condition=toggle.openpilot_longitudinal and custom_ui)
@@ -1962,6 +1973,10 @@ class FrogPilotVariables:
     toggle.show_fps = self.get_value("FPSCounter", condition=toggle.developer_metrics) or toggle.debug_mode
     toggle.adjacent_path_metrics = self.get_value("AdjacentPathMetrics", condition=toggle.developer_metrics) or toggle.debug_mode
     toggle.lead_info = self.get_value("LeadInfo", condition=toggle.developer_metrics) or toggle.debug_mode
+    toggle.lead_info_desired = self.get_value("LeadInfoDesired", condition=toggle.lead_info) or toggle.debug_mode
+    toggle.lead_info_distance = self.get_value("LeadInfoDistance", condition=toggle.lead_info) or toggle.debug_mode
+    toggle.lead_info_speed = self.get_value("LeadInfoSpeed", condition=toggle.lead_info) or toggle.debug_mode
+    toggle.lead_info_time_gap = self.get_value("LeadInfoTimeGap", condition=toggle.lead_info) or toggle.debug_mode
     toggle.numerical_temp = self.get_value("NumericalTemp", condition=toggle.developer_metrics) or toggle.debug_mode
     toggle.fahrenheit = self.get_value("Fahrenheit", condition=toggle.numerical_temp and not toggle.debug_mode)
     toggle.cpu_metrics = self.get_value("ShowCPU", condition=toggle.developer_metrics) or toggle.debug_mode
